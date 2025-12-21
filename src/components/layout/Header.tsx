@@ -1,12 +1,39 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ChefHat, Plus, ShoppingCart } from 'lucide-react';
+import { ChefHat, Plus, ShoppingCart, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRecipes } from '@/contexts/RecipeContext';
+import { useAuth } from '@/auth/AuthContext';
 import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
   const location = useLocation();
   const { shoppingList } = useRecipes();
+  const { user, signOut, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: 'Até logo!',
+        description: 'Você saiu da sua conta.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao sair da conta.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
@@ -51,6 +78,30 @@ export function Header() {
               )}
             </Button>
           </Link>
+
+          {isAuthenticated && user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2 pl-2">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'Usuário'} />
+                    <AvatarFallback className="text-xs">
+                      {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline text-sm truncate max-w-[100px]">
+                    {user.displayName || user.email?.split('@')[0]}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
       </div>
     </header>

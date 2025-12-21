@@ -20,6 +20,7 @@ export interface Ingredient {
 
 export interface Recipe {
   id: string;
+  userId?: string; // Owner of the recipe
   title: string;
   description?: string;
   categories: Category[];
