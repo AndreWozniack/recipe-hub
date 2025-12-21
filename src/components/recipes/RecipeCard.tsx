@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Users, Heart, ChefHat, ShoppingCart, Trash2 } from 'lucide-react';
 import { Recipe, CATEGORIES, DIFFICULTY_LABELS } from '@/types/recipe';
@@ -12,6 +13,7 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe, index }: RecipeCardProps) {
+  const navigate = useNavigate();
   const { toggleFavorite, addToShoppingList, shoppingList, deleteRecipe } = useRecipes();
   const isInShoppingList = shoppingList.some((item) => item.recipeId === recipe.id);
 
@@ -19,16 +21,23 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
     .filter(Boolean);
 
-  const handleAddToList = () => {
+  const handleAddToList = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addToShoppingList(recipe.id, recipe.title);
     toast.success(`${recipe.title} adicionada à lista de compras!`);
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (confirm(`Tem certeza que deseja excluir "${recipe.title}"?`)) {
       deleteRecipe(recipe.id);
       toast.success('Receita excluída com sucesso!');
     }
+  };
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(recipe.id);
   };
 
   return (
@@ -36,7 +45,8 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
-      className="group relative overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-300 hover:shadow-card-hover"
+      onClick={() => navigate(`/receita/${recipe.id}`)}
+      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-300 hover:shadow-card-hover"
     >
       {/* Image placeholder with gradient */}
       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-secondary">
@@ -46,7 +56,7 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
         
         {/* Favorite button */}
         <button
-          onClick={() => toggleFavorite(recipe.id)}
+          onClick={handleFavorite}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-transform hover:scale-110"
         >
           <Heart
