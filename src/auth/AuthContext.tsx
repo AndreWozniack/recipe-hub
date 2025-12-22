@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AuthUser, AuthState, AuthConfig, IAuthProvider } from './types';
-import { initializeAuth, getAuthProvider, isAuthInitialized } from './index';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { AuthUser, AuthState, AuthConfig, IAuthProvider } from "./types";
+import { initializeAuth, getAuthProvider, isAuthInitialized } from "./index";
 
 interface AuthContextType extends AuthState {
   signInWithGoogle: () => Promise<void>;
@@ -37,7 +43,9 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
 
       return () => unsubscribe();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize auth');
+      setError(
+        err instanceof Error ? err.message : "Failed to initialize auth"
+      );
       setLoading(false);
     }
   }, [config]);
@@ -49,40 +57,48 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
     try {
       await provider.signInWithGoogle();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+      setError(
+        err instanceof Error ? err.message : "Failed to sign in with Google"
+      );
       throw err;
     } finally {
       setLoading(false);
     }
   }, [provider]);
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    if (!provider) return;
-    setError(null);
-    setLoading(true);
-    try {
-      await provider.signInWithEmail(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [provider]);
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      if (!provider) return;
+      setError(null);
+      setLoading(true);
+      try {
+        await provider.signInWithEmail(email, password);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to sign in");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [provider]
+  );
 
-  const signUpWithEmail = useCallback(async (email: string, password: string) => {
-    if (!provider) return;
-    setError(null);
-    setLoading(true);
-    try {
-      await provider.signUpWithEmail(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [provider]);
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string) => {
+      if (!provider) return;
+      setError(null);
+      setLoading(true);
+      try {
+        await provider.signUpWithEmail(email, password);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to sign up");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [provider]
+  );
 
   const signOut = useCallback(async () => {
     if (!provider) return;
@@ -90,7 +106,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
     try {
       await provider.signOut();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign out');
+      setError(err instanceof Error ? err.message : "Failed to sign out");
       throw err;
     }
   }, [provider]);
@@ -112,7 +128,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

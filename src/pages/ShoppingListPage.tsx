@@ -1,5 +1,5 @@
-import { Header } from '@/components/layout/Header';
-import { ShoppingList } from '@/components/shopping/ShoppingList';
+import { Header } from "@/components/layout/Header";
+import { ShoppingList } from "@/components/shopping/ShoppingList";
 
 const ShoppingListPage = () => {
   return (
