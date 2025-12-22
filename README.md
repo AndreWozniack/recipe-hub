@@ -10,6 +10,7 @@ Um aplicativo web completo para gerenciar, compartilhar e organizar suas receita
 - [Autenticação](#autenticação)
 - [CRUD de Receitas](#crud-de-receitas)
 - [Compartilhamento de Receitas](#compartilhamento-de-receitas)
+- [Importação com IA](#-importação-de-receitas-com-ia)
 - [Páginas Principais](#páginas-principais)
 - [Componentes Reutilizáveis](#componentes-reutilizáveis)
 - [Tipos e Contextos](#tipos-e-contextos)
@@ -51,6 +52,7 @@ recipe-hub/
 │   │
 │   ├── lib/                           # 🛠️ Utilitários
 │   │   ├── recipeSharing.ts           # Funções de compartilhamento
+│   │   ├── recipeAI.ts                # Integração Claude AI para parsing
 │   │   ├── exportPDF.ts               # Exportação de receitas em PDF
 │   │   └── utils.ts                   # Funções auxiliares
 │   │
@@ -76,7 +78,8 @@ recipe-hub/
 │   │   │   ├── RecipeForm.tsx         # Formulário de receita
 │   │   │   ├── CategoryFilter.tsx     # Filtro de categorias
 │   │   │   ├── ShareRecipeDialog.tsx  # Dialog para compartilhar
-│   │   │   └── ImportSharedRecipeDialog.tsx # Dialog para importar
+│   │   │   ├── ImportSharedRecipeDialog.tsx # Dialog para importar via link
+│   │   │   └── ImportRecipeDialog.tsx # Dialog para importar com IA
 │   │   ├── shopping/
 │   │   │   └── ShoppingList.tsx       # Componente da lista de compras
 │   │   └── ui/                        # Componentes Shadcn/UI
@@ -247,6 +250,72 @@ shareViaWhatsApp(title: string, link: string): void       // WhatsApp
 shareViaEmail(title: string, link: string): void          // Email
 shareViaFacebook(link: string): void                       // Facebook
 ```
+
+---
+
+## 🤖 Importação de Receitas com IA
+
+### Arquivos Principais
+
+| Arquivo                    | Localização               | Função                                     |
+| -------------------------- | ------------------------- | ------------------------------------------ |
+| **recipeAI.ts**            | `src/lib/`                | Serviço Claude AI para parsing de receitas |
+| **ImportRecipeDialog.tsx** | `src/components/recipes/` | Dialog para colar texto e processar com IA |
+
+### Como Funciona
+
+1. **Usuário Cole Texto**: Cole qualquer receita (blog, PDF, texto livre)
+2. **IA Processa**: Claude AI estrutura em JSON
+3. **Formulário Preenchido**: Campos auto-preenchem na página Nova Receita
+4. **Revisar e Salvar**: Usuário revisa dados e salva receita
+
+### Serviço Claude AI
+
+```typescript
+// Importar receitas com IA usando Claude
+async function parseRecipeWithAI(recipeText: string): Promise<AIRecipeResponse>;
+
+interface AIRecipeResponse {
+  title: string; // Título extraído
+  description?: string; // Descrição curta
+  ingredients: Ingredient[]; // Array com ingredientes
+  instructions: string; // Modo de preparo
+  prepTime?: number; // Tempo de preparo em minutos
+  servings?: number; // Número de porções
+  difficulty?: Difficulty; // "fácil", "médio", "difícil"
+  categories: Category[]; // Categorias identificadas
+}
+```
+
+### Fluxo de Integração
+
+```
+NewRecipe.tsx (RecipeForm.tsx)
+    ↓
+ImportRecipeDialog.tsx (Botão "Importar com IA")
+    ↓
+parseRecipeWithAI(recipeText)
+    ↓
+Anthropic Claude API (v1/messages)
+    ↓
+AIRecipeResponse (JSON estruturado)
+    ↓
+handleRecipeImported() - Popula todos os campos do formulário
+    ↓
+Usuário revisa e clica "Salvar"
+```
+
+### Variáveis de Ambiente
+
+```env
+VITE_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Obter API Key**: [console.anthropic.com](https://console.anthropic.com/)
+
+**Modelo Usado**: `claude-3-5-sonnet-20241022`
+
+**Custo**: ~$0.001 por receita processada
 
 ---
 
@@ -459,12 +528,24 @@ initializeRepository({
 3. Habilite **Realtime Database**
 4. Copie credenciais para `src/auth/authConfig.ts`
 
+### Configuração Claude AI (Importar Receitas com IA)
+
+1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com/)
+2. Gere uma API Key
+3. Adicione ao `.env.local`:
+   ```env
+   VITE_ANTHROPIC_API_KEY=your_api_key_here
+   ```
+
+**Custo:** Aproximadamente $0.001 por receita processada
+
 ### Variáveis de Ambiente
 
 ```env
 VITE_FIREBASE_API_KEY=...
 VITE_FIREBASE_AUTH_DOMAIN=...
 VITE_FIREBASE_PROJECT_ID=...
+VITE_ANTHROPIC_API_KEY=...  # Claude API para importar receitas
 # ... outras configs
 ```
 
