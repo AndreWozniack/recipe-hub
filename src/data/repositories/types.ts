@@ -1,14 +1,14 @@
-import { Recipe, Ingredient } from '@/types/recipe';
+import { Recipe, Ingredient } from "@/types/recipe";
 
 // Base repository interface for CRUD operations
 export interface IRecipeRepository {
   // Recipes
   getAll(): Promise<Recipe[]>;
   getById(id: string): Promise<Recipe | null>;
-  create(recipe: Omit<Recipe, 'id' | 'createdAt'>): Promise<Recipe>;
+  create(recipe: Omit<Recipe, "id" | "createdAt">): Promise<Recipe>;
   update(id: string, updates: Partial<Recipe>): Promise<Recipe | null>;
   delete(id: string): Promise<boolean>;
-  
+
   // Shopping List
   getShoppingList(): Promise<ShoppingListItem[]>;
   addToShoppingList(recipeId: string, recipeName: string): Promise<void>;
@@ -22,7 +22,7 @@ export interface ShoppingListItem {
 }
 
 // Database provider types
-export type DatabaseProvider = 'localStorage' | 'supabase' | 'aws';
+export type DatabaseProvider = "localStorage" | "supabase" | "aws" | "firebase";
 
 // Configuration for database connection
 export interface DatabaseConfig {
@@ -35,4 +35,15 @@ export interface DatabaseConfig {
   awsAccessKeyId?: string;
   awsSecretAccessKey?: string;
   awsTableName?: string;
+  // Firebase config
+  firebaseConfig?: {
+    apiKey: string;
+    authDomain: string;
+    projectId: string;
+    storageBucket: string;
+    messagingSenderId: string;
+    appId: string;
+    measurementId?: string;
+    databaseURL?: string;
+  };
 }

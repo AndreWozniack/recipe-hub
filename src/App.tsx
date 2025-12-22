@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RecipeProvider } from "@/contexts/RecipeContext";
 import { AuthProvider } from "@/auth/AuthContext";
 import { authConfig } from "@/auth/authConfig";
+import { initializeRepository } from "@/data/repositories";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NewRecipe from "./pages/NewRecipe";
@@ -15,6 +16,14 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Initialize Firebase repository if configured
+if (authConfig.provider === "firebase" && authConfig.firebaseConfig) {
+  initializeRepository({
+    provider: "firebase",
+    firebaseConfig: authConfig.firebaseConfig,
+  });
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
