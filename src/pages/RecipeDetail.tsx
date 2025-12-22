@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Clock,
@@ -14,21 +14,22 @@ import {
   Save,
   X,
   Sparkles,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+  Download,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { CategoryFilter } from '@/components/recipes/CategoryFilter';
-import { useRecipes } from '@/contexts/RecipeContext';
+} from "@/components/ui/select";
+import { CategoryFilter } from "@/components/recipes/CategoryFilter";
+import { useRecipes } from "@/contexts/RecipeContext";
 import {
   Recipe,
   Category,
@@ -36,9 +37,10 @@ import {
   Ingredient,
   CATEGORIES,
   DIFFICULTY_LABELS,
-} from '@/types/recipe';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+} from "@/types/recipe";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { exportRecipeToPDF } from "@/lib/exportPDF";
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,14 +58,14 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
 
   // Edit form state
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [instructions, setInstructions] = useState('');
-  const [prepTime, setPrepTime] = useState('');
-  const [servings, setServings] = useState('');
-  const [difficulty, setDifficulty] = useState<Difficulty | ''>('');
+  const [instructions, setInstructions] = useState("");
+  const [prepTime, setPrepTime] = useState("");
+  const [servings, setServings] = useState("");
+  const [difficulty, setDifficulty] = useState<Difficulty | "">("");
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
@@ -76,18 +78,23 @@ export default function RecipeDetail() {
 
   const resetFormToRecipe = (r: Recipe) => {
     setTitle(r.title);
-    setDescription(r.description || '');
+    setDescription(r.description || "");
     setCategories(r.categories);
     setIngredients(
       r.ingredients.length > 0
         ? r.ingredients
-        : [{ id: crypto.randomUUID(), name: '', quantity: '', unit: '' }]
+        : [{ id: crypto.randomUUID(), name: "", quantity: "", unit: "" }]
     );
     setInstructions(r.instructions);
-    setPrepTime(r.prepTime?.toString() || '');
-    setServings(r.servings?.toString() || '');
-    setDifficulty(r.difficulty || '');
+    setPrepTime(r.prepTime?.toString() || "");
+    setServings(r.servings?.toString() || "");
+    setDifficulty(r.difficulty || "");
     setIsFavorite(r.isFavorite);
+  };
+
+  const handleExportPDF = () => {
+    exportRecipeToPDF(recipe);
+    toast.success("Receita pronta para exportar como PDF!");
   };
 
   if (!recipe) {
@@ -98,21 +105,25 @@ export default function RecipeDetail() {
     );
   }
 
-  const isInShoppingList = shoppingList.some((item) => item.recipeId === recipe.id);
+  const isInShoppingList = shoppingList.some(
+    (item) => item.recipeId === recipe.id
+  );
   const categoryLabels = recipe.categories
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
     .filter(Boolean);
 
   const handleToggleCategory = (category: Category) => {
     setCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
     );
   };
 
   const handleAddIngredient = () => {
     setIngredients((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', quantity: '', unit: '' },
+      { id: crypto.randomUUID(), name: "", quantity: "", unit: "" },
     ]);
   };
 
@@ -128,7 +139,9 @@ export default function RecipeDetail() {
     value: string
   ) => {
     setIngredients((prev) =>
-      prev.map((ing) => (ing.id === ingredientId ? { ...ing, [field]: value } : ing))
+      prev.map((ing) =>
+        ing.id === ingredientId ? { ...ing, [field]: value } : ing
+      )
     );
   };
 
@@ -136,17 +149,17 @@ export default function RecipeDetail() {
     const validIngredients = ingredients.filter((ing) => ing.name.trim());
 
     if (!title.trim()) {
-      toast.error('Por favor, adicione um título para a receita.');
+      toast.error("Por favor, adicione um título para a receita.");
       return;
     }
 
     if (validIngredients.length === 0) {
-      toast.error('Por favor, adicione pelo menos um ingrediente.');
+      toast.error("Por favor, adicione pelo menos um ingrediente.");
       return;
     }
 
     if (!instructions.trim()) {
-      toast.error('Por favor, adicione o modo de preparo.');
+      toast.error("Por favor, adicione o modo de preparo.");
       return;
     }
 
@@ -162,7 +175,7 @@ export default function RecipeDetail() {
       isFavorite,
     });
 
-    toast.success('Receita atualizada com sucesso!');
+    toast.success("Receita atualizada com sucesso!");
     setIsEditing(false);
   };
 
@@ -174,8 +187,8 @@ export default function RecipeDetail() {
   const handleDelete = async () => {
     if (confirm(`Tem certeza que deseja excluir "${recipe.title}"?`)) {
       await deleteRecipe(recipe.id);
-      toast.success('Receita excluída com sucesso!');
-      navigate('/');
+      toast.success("Receita excluída com sucesso!");
+      navigate("/");
     }
   };
 
@@ -196,20 +209,23 @@ export default function RecipeDetail() {
             className="space-y-6"
           >
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
               </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Editar
-                </Button>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Excluir
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir
+              </Button>
             </div>
 
             {/* Hero Section */}
@@ -223,8 +239,10 @@ export default function RecipeDetail() {
               >
                 <Heart
                   className={cn(
-                    'h-6 w-6 transition-colors',
-                    recipe.isFavorite ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+                    "h-6 w-6 transition-colors",
+                    recipe.isFavorite
+                      ? "fill-destructive text-destructive"
+                      : "text-muted-foreground"
                   )}
                 />
               </button>
@@ -248,7 +266,9 @@ export default function RecipeDetail() {
                 {recipe.title}
               </h1>
               {recipe.description && (
-                <p className="text-lg text-muted-foreground">{recipe.description}</p>
+                <p className="text-lg text-muted-foreground">
+                  {recipe.description}
+                </p>
               )}
             </div>
 
@@ -275,13 +295,15 @@ export default function RecipeDetail() {
 
             {/* Add to Shopping List */}
             <Button
-              variant={isInShoppingList ? 'secondary' : 'default'}
+              variant={isInShoppingList ? "secondary" : "default"}
               className="w-full gap-2"
               onClick={handleAddToList}
               disabled={isInShoppingList}
             >
               <ShoppingCart className="h-4 w-4" />
-              {isInShoppingList ? 'Já está na lista de compras' : 'Adicionar à lista de compras'}
+              {isInShoppingList
+                ? "Já está na lista de compras"
+                : "Adicionar à lista de compras"}
             </Button>
 
             {/* Ingredients */}
@@ -291,10 +313,13 @@ export default function RecipeDetail() {
               </h2>
               <ul className="space-y-2">
                 {recipe.ingredients.map((ing) => (
-                  <li key={ing.id} className="flex items-center gap-2 text-foreground">
+                  <li
+                    key={ing.id}
+                    className="flex items-center gap-2 text-foreground"
+                  >
                     <span className="h-2 w-2 rounded-full bg-primary" />
                     <span>
-                      {ing.quantity && <strong>{ing.quantity}</strong>}{' '}
+                      {ing.quantity && <strong>{ing.quantity}</strong>}{" "}
                       {ing.unit && <span>{ing.unit}</span>} {ing.name}
                     </span>
                   </li>
@@ -333,14 +358,21 @@ export default function RecipeDetail() {
         >
           {/* Header */}
           <div className="flex items-center gap-4">
-            <Button type="button" variant="ghost" size="icon" onClick={handleCancel}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleCancel}
+            >
               <X className="h-5 w-5" />
             </Button>
             <div className="flex-1">
               <h1 className="font-display text-3xl font-bold text-foreground">
                 Editar Receita
               </h1>
-              <p className="text-muted-foreground">Atualize os detalhes da receita</p>
+              <p className="text-muted-foreground">
+                Atualize os detalhes da receita
+              </p>
             </div>
           </div>
 
@@ -404,7 +436,11 @@ export default function RecipeDetail() {
                     placeholder="Ingrediente"
                     value={ingredient.name}
                     onChange={(e) =>
-                      handleIngredientChange(ingredient.id, 'name', e.target.value)
+                      handleIngredientChange(
+                        ingredient.id,
+                        "name",
+                        e.target.value
+                      )
                     }
                     className="flex-1"
                   />
@@ -412,7 +448,11 @@ export default function RecipeDetail() {
                     placeholder="Qtd"
                     value={ingredient.quantity}
                     onChange={(e) =>
-                      handleIngredientChange(ingredient.id, 'quantity', e.target.value)
+                      handleIngredientChange(
+                        ingredient.id,
+                        "quantity",
+                        e.target.value
+                      )
                     }
                     className="w-20"
                   />
@@ -420,7 +460,11 @@ export default function RecipeDetail() {
                     placeholder="Unidade"
                     value={ingredient.unit}
                     onChange={(e) =>
-                      handleIngredientChange(ingredient.id, 'unit', e.target.value)
+                      handleIngredientChange(
+                        ingredient.id,
+                        "unit",
+                        e.target.value
+                      )
                     }
                     className="w-24"
                   />
@@ -474,7 +518,10 @@ export default function RecipeDetail() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="difficulty">Dificuldade</Label>
-              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+              <Select
+                value={difficulty}
+                onValueChange={(v) => setDifficulty(v as Difficulty)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
