@@ -1,32 +1,55 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Trash2, ArrowLeft, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CategoryFilter } from './CategoryFilter';
-import { useRecipes } from '@/contexts/RecipeContext';
-import { Category, Difficulty, Ingredient, DIFFICULTY_LABELS } from '@/types/recipe';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Plus, Trash2, ArrowLeft, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CategoryFilter } from "./CategoryFilter";
+import { ImportRecipeDialog } from "./ImportRecipeDialog";
+import { useRecipes } from "@/contexts/RecipeContext";
+import {
+  Category,
+  Difficulty,
+  Ingredient,
+  DIFFICULTY_LABELS,
+} from "@/types/recipe";
+import { toast } from "sonner";
+
+interface ImportedRecipe {
+  title?: string;
+  description?: string;
+  categories?: Category[];
+  ingredients?: Ingredient[];
+  instructions?: string;
+  prepTime?: number | string;
+  servings?: number | string;
+  difficulty?: Difficulty;
+}
 
 export function RecipeForm() {
   const navigate = useNavigate();
   const { addRecipe } = useRecipes();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { id: crypto.randomUUID(), name: '', quantity: '', unit: '' },
+    { id: crypto.randomUUID(), name: "", quantity: "", unit: "" },
   ]);
-  const [instructions, setInstructions] = useState('');
-  const [prepTime, setPrepTime] = useState('');
-  const [servings, setServings] = useState('');
-  const [difficulty, setDifficulty] = useState<Difficulty | ''>('');
+  const [instructions, setInstructions] = useState("");
+  const [prepTime, setPrepTime] = useState("");
+  const [servings, setServings] = useState("");
+  const [difficulty, setDifficulty] = useState<Difficulty | "">("");
   const [isFavorite, setIsFavorite] = useState(false);
 
   const handleToggleCategory = (category: Category) => {
@@ -37,10 +60,29 @@ export function RecipeForm() {
     );
   };
 
+  const handleRecipeImported = (importedRecipe: ImportedRecipe) => {
+    setTitle(importedRecipe.title || "");
+    setDescription(importedRecipe.description || "");
+    setCategories(importedRecipe.categories || []);
+    setInstructions(importedRecipe.instructions || "");
+    setPrepTime(importedRecipe.prepTime?.toString() || "");
+    setServings(importedRecipe.servings?.toString() || "");
+    setDifficulty((importedRecipe.difficulty as Difficulty) || "");
+
+    if (
+      importedRecipe.ingredients &&
+      Array.isArray(importedRecipe.ingredients)
+    ) {
+      setIngredients(importedRecipe.ingredients);
+    }
+
+    toast.success("Receita importada com sucesso!");
+  };
+
   const handleAddIngredient = () => {
     setIngredients((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', quantity: '', unit: '' },
+      { id: crypto.randomUUID(), name: "", quantity: "", unit: "" },
     ]);
   };
 
@@ -66,17 +108,17 @@ export function RecipeForm() {
     const validIngredients = ingredients.filter((ing) => ing.name.trim());
 
     if (!title.trim()) {
-      toast.error('Por favor, adicione um título para a receita.');
+      toast.error("Por favor, adicione um título para a receita.");
       return;
     }
 
     if (validIngredients.length === 0) {
-      toast.error('Por favor, adicione pelo menos um ingrediente.');
+      toast.error("Por favor, adicione pelo menos um ingrediente.");
       return;
     }
 
     if (!instructions.trim()) {
-      toast.error('Por favor, adicione o modo de preparo.');
+      toast.error("Por favor, adicione o modo de preparo.");
       return;
     }
 
@@ -92,8 +134,8 @@ export function RecipeForm() {
       isFavorite,
     });
 
-    toast.success('Receita adicionada com sucesso!');
-    navigate('/');
+    toast.success("Receita adicionada com sucesso!");
+    navigate("/");
   };
 
   return (
@@ -105,23 +147,26 @@ export function RecipeForm() {
       className="mx-auto max-w-2xl space-y-8"
     >
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">
-            Nova Receita
-          </h1>
-          <p className="text-muted-foreground">
-            Adicione os detalhes da sua receita
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="font-display text-3xl font-bold text-foreground">
+              Nova Receita
+            </h1>
+            <p className="text-muted-foreground">
+              Adicione os detalhes da sua receita
+            </p>
+          </div>
         </div>
+        <ImportRecipeDialog onRecipeImported={handleRecipeImported} />
       </div>
 
       {/* Title & Description */}
@@ -186,7 +231,7 @@ export function RecipeForm() {
                 placeholder="Ingrediente"
                 value={ingredient.name}
                 onChange={(e) =>
-                  handleIngredientChange(ingredient.id, 'name', e.target.value)
+                  handleIngredientChange(ingredient.id, "name", e.target.value)
                 }
                 className="flex-1"
               />
@@ -194,7 +239,11 @@ export function RecipeForm() {
                 placeholder="Qtd"
                 value={ingredient.quantity}
                 onChange={(e) =>
-                  handleIngredientChange(ingredient.id, 'quantity', e.target.value)
+                  handleIngredientChange(
+                    ingredient.id,
+                    "quantity",
+                    e.target.value
+                  )
                 }
                 className="w-20"
               />
@@ -202,7 +251,7 @@ export function RecipeForm() {
                 placeholder="Unidade"
                 value={ingredient.unit}
                 onChange={(e) =>
-                  handleIngredientChange(ingredient.id, 'unit', e.target.value)
+                  handleIngredientChange(ingredient.id, "unit", e.target.value)
                 }
                 className="w-24"
               />
@@ -258,7 +307,10 @@ export function RecipeForm() {
 
         <div className="space-y-2">
           <Label htmlFor="difficulty">Dificuldade</Label>
-          <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+          <Select
+            value={difficulty}
+            onValueChange={(v) => setDifficulty(v as Difficulty)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
