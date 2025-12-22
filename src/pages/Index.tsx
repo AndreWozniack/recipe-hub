@@ -1,16 +1,17 @@
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, ChefHat, Heart } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { CategoryFilter } from '@/components/recipes/CategoryFilter';
-import { RecipeCard } from '@/components/recipes/RecipeCard';
-import { Input } from '@/components/ui/input';
-import { useRecipes } from '@/contexts/RecipeContext';
-import { Category } from '@/types/recipe';
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Search, ChefHat, Heart } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { CategoryFilter } from "@/components/recipes/CategoryFilter";
+import { RecipeCard } from "@/components/recipes/RecipeCard";
+import { ImportSharedRecipeDialog } from "@/components/recipes/ImportSharedRecipeDialog";
+import { Input } from "@/components/ui/input";
+import { useRecipes } from "@/contexts/RecipeContext";
+import { Category } from "@/types/recipe";
 
 const Index = () => {
   const { recipes } = useRecipes();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
 
@@ -18,7 +19,7 @@ const Index = () => {
     return recipes.filter((recipe) => {
       // Search filter
       const matchesSearch =
-        searchQuery === '' ||
+        searchQuery === "" ||
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -67,7 +68,8 @@ const Index = () => {
             <span className="text-primary">em um só lugar</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Organize suas receitas, gere listas de compras e nunca mais perca aquela receita especial.
+            Organize suas receitas, gere listas de compras e nunca mais perca
+            aquela receita especial.
           </p>
         </motion.section>
 
@@ -89,15 +91,18 @@ const Index = () => {
                 className="pl-10"
               />
             </div>
+            <ImportSharedRecipeDialog />
             <button
               onClick={() => setShowFavorites(!showFavorites)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                 showFavorites
-                  ? 'bg-destructive/10 text-destructive'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
             >
-              <Heart className={`h-4 w-4 ${showFavorites ? 'fill-current' : ''}`} />
+              <Heart
+                className={`h-4 w-4 ${showFavorites ? "fill-current" : ""}`}
+              />
               Favoritas
             </button>
           </div>

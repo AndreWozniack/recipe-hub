@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CategoryFilter } from "@/components/recipes/CategoryFilter";
+import { ShareRecipeDialog } from "@/components/recipes/ShareRecipeDialog";
 import { useRecipes } from "@/contexts/RecipeContext";
 import {
   Recipe,
@@ -209,23 +210,29 @@ export default function RecipeDetail() {
             className="space-y-6"
           >
             {/* Header */}
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                <Download className="mr-2 h-4 w-4" />
-                Exportar PDF
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                <ArrowLeft className="h-5 w-5" />
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-              <Button variant="destructive" size="sm" onClick={handleDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar PDF
+                </Button>
+                {recipe && <ShareRecipeDialog recipe={recipe} />}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </Button>
+              </div>
             </div>
 
             {/* Hero Section */}

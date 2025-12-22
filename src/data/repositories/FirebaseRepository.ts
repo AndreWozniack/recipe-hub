@@ -99,7 +99,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async getById(id: string): Promise<Recipe | null> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const recipeRef = child(this.getUserRecipesRef(), id);
@@ -260,7 +260,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async clearShoppingList(): Promise<void> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const shoppingListRef = this.getUserShoppingListRef();
@@ -270,6 +270,107 @@ export class FirebaseRepository implements IRecipeRepository {
       console.error("Erro ao limpar lista de compras:", error);
       throw new Error(errorMessage);
     }
+  }
+
+  // Shared Recipes methods
+  async shareRecipe(recipeId: string): Promise<string> {
+    await this.ensureAuthenticated();
+
+    try {
+      const recipe = await this.getById(recipeId);
+      if (!recipe) {
+        throw new Error("Receita não encontrada");
+      }
+
+      const shareId = this.generateShareId();
+      const sharedRecipesRef = ref(this.db, `sharedRecipes/${shareId}`);
+
+      const cleanedRecipe = cleanObject({
+        title: recipe.title,
+        description: recipe.description,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        categories: recipe.categories,
+        prepTime: recipe.prepTime,
+        servings: recipe.servings,
+        difficulty: recipe.difficulty,
+      });
+
+      await set(sharedRecipesRef, {
+        recipeId,
+        authorId: this.userId,
+        recipe: cleanedRecipe,
+        createdAt: new Date().toISOString(),
+        sharedAt: new Date().toISOString(),
+      });
+
+      return shareId;
+    } catch (error) {
+      const errorMessage = this.formatError(error, "compartilhar receita");
+      console.error("Erro ao compartilhar receita:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  async getSharedRecipe(
+    shareId: string
+  ): Promise<(Recipe & { authorId: string }) | null> {
+    try {
+      const sharedRecipeRef = ref(this.db, `sharedRecipes/${shareId}`);
+      const snapshot = await get(sharedRecipeRef);
+
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      const data = snapshot.val();
+      return {
+        ...data.recipe,
+        id: shareId,
+        userId: data.authorId,
+        createdAt: new Date(data.createdAt),
+      } as Recipe & { authorId: string };
+    } catch (error) {
+      const errorMessage = this.formatError(
+        error,
+        "obter receita compartilhada"
+      );
+      console.error("Erro ao obter receita compartilhada:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  async importSharedRecipe(shareId: string): Promise<Recipe> {
+    await this.ensureAuthenticated();
+
+    try {
+      const sharedRecipe = await this.getSharedRecipe(shareId);
+      if (!sharedRecipe) {
+        throw new Error("Receita compartilhada não encontrada");
+      }
+
+      // Remove user-specific properties
+      const { userId, ...recipeData } = sharedRecipe;
+
+      // Create new recipe for current user
+      return this.create({
+        ...recipeData,
+        isFavorite: false,
+      });
+    } catch (error) {
+      const errorMessage = this.formatError(
+        error,
+        "importar receita compartilhada"
+      );
+      console.error("Erro ao importar receita compartilhada:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  private generateShareId(): string {
+    return (
+      Math.random().toString(36).substring(2, 11) + Date.now().toString(36)
+    );
   }
 
   // Error handling helper
