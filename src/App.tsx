@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import NewRecipe from "./pages/NewRecipe";
 import ShoppingListPage from "./pages/ShoppingListPage";
 import RecipeDetail from "./pages/RecipeDetail";
+import SharedRecipe from "./pages/SharedRecipe";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/compartilhar/:shareId" element={<SharedRecipe />} />
               <Route
                 path="/"
                 element={
