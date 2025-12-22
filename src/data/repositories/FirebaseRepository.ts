@@ -27,6 +27,7 @@ export class FirebaseRepository implements IRecipeRepository {
   private auth: Auth;
   private app: FirebaseApp;
   private userId: string | null = null;
+  private authPromise: Promise<void>;
 
   constructor(firebaseConfig: {
     apiKey: string;
@@ -42,31 +43,39 @@ export class FirebaseRepository implements IRecipeRepository {
     this.db = getDatabase(this.app);
     this.auth = getAuth(this.app);
 
-    // Set up auth state listener to get userId
-    this.auth.onAuthStateChanged((user) => {
-      this.userId = user?.uid || null;
+    // Create a promise that resolves when auth state is determined
+    this.authPromise = new Promise((resolve) => {
+      this.auth.onAuthStateChanged((user) => {
+        this.userId = user?.uid || null;
+        resolve();
+      });
     });
   }
 
-  private ensureAuthenticated(): void {
+  private async ensureAuthenticated(): Promise<void> {
+    await this.authPromise;
     if (!this.userId) {
       throw new Error("User must be authenticated to use Firebase Repository");
     }
   }
 
   private getUserRecipesRef() {
-    this.ensureAuthenticated();
+    if (!this.userId) {
+      throw new Error("User must be authenticated");
+    }
     return ref(this.db, `users/${this.userId}/recipes`);
   }
 
   private getUserShoppingListRef() {
-    this.ensureAuthenticated();
+    if (!this.userId) {
+      throw new Error("User must be authenticated");
+    }
     return ref(this.db, `users/${this.userId}/shoppingList`);
   }
 
   // Recipe methods
   async getAll(): Promise<Recipe[]> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const recipesRef = this.getUserRecipesRef();
@@ -114,7 +123,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async create(recipe: Omit<Recipe, "id" | "createdAt">): Promise<Recipe> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const recipesRef = this.getUserRecipesRef();
@@ -140,7 +149,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async update(id: string, updates: Partial<Recipe>): Promise<Recipe | null> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       // Remove id and createdAt from updates if present
@@ -159,7 +168,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const recipeRef = child(this.getUserRecipesRef(), id);
@@ -178,7 +187,7 @@ export class FirebaseRepository implements IRecipeRepository {
 
   // Shopping list methods
   async getShoppingList(): Promise<ShoppingListItem[]> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const shoppingListRef = this.getUserShoppingListRef();
@@ -198,7 +207,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async addToShoppingList(recipeId: string, recipeName: string): Promise<void> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const shoppingListRef = this.getUserShoppingListRef();
@@ -226,7 +235,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async removeFromShoppingList(recipeId: string): Promise<void> {
-    this.ensureAuthenticated();
+    await this.ensureAuthenticated();
 
     try {
       const shoppingListRef = this.getUserShoppingListRef();

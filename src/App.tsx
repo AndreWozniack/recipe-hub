@@ -17,13 +17,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Initialize Firebase repository if configured
-if (authConfig.provider === "firebase" && authConfig.firebaseConfig) {
-  initializeRepository({
-    provider: "firebase",
-    firebaseConfig: authConfig.firebaseConfig,
-  });
-}
+// Initialize Firebase repository
+initializeRepository({
+  provider: "firebase",
+  firebaseConfig: authConfig.firebaseConfig!,
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
