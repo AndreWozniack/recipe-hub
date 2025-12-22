@@ -12,7 +12,7 @@ export interface AIRecipeResponse {
 }
 
 /**
- * Parse recipe text using Claude AI via backend proxy
+ * Parse recipe text using Claude AI via AWS Lambda
  * @param recipeText - Raw recipe text (can be unstructured)
  * @returns Structured recipe data
  */
@@ -24,15 +24,18 @@ export async function parseRecipeWithAI(
   }
 
   try {
-    const response = await fetch("/api/parseRecipe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        recipeText: recipeText.trim(),
-      }),
-    });
+    const response = await fetch(
+      "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipeText: recipeText.trim(),
+        }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
