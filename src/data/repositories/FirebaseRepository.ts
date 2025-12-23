@@ -8,6 +8,7 @@ import {
   remove,
   child,
   Database,
+  update,
 } from "firebase/database";
 import { getAuth, Auth } from "firebase/auth";
 import { initializeApp, FirebaseApp } from "firebase/app";
@@ -152,12 +153,25 @@ export class FirebaseRepository implements IRecipeRepository {
     await this.ensureAuthenticated();
 
     try {
+      // Get the existing recipe first
+      const existingRecipe = await this.getById(id);
+      if (!existingRecipe) {
+        return null;
+      }
+
       // Remove id and createdAt from updates if present
       const { id: _, createdAt: __, ...safeUpdates } = updates;
       const cleanedUpdates = cleanObject(safeUpdates);
 
+      // Merge with existing data to preserve all fields
+      const mergedData = {
+        ...existingRecipe,
+        ...cleanedUpdates,
+        createdAt: existingRecipe.createdAt.toISOString(),
+      };
+      
       const recipeRef = child(this.getUserRecipesRef(), id);
-      await set(recipeRef, cleanedUpdates);
+      await set(recipeRef, mergedData);
 
       return this.getById(id);
     } catch (error) {
