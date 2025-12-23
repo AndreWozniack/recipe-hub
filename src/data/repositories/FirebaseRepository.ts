@@ -164,10 +164,21 @@ export class FirebaseRepository implements IRecipeRepository {
       const cleanedUpdates = cleanObject(safeUpdates);
 
       // Merge with existing data to preserve all fields
-      const createdAtStr = existingRecipe.createdAt instanceof Date 
-        ? existingRecipe.createdAt.toISOString()
-        : String(existingRecipe.createdAt);
-      
+      let createdAtStr: string;
+
+      if (existingRecipe.createdAt instanceof Date) {
+        // Validate the date is valid
+        if (isNaN(existingRecipe.createdAt.getTime())) {
+          createdAtStr = new Date().toISOString();
+        } else {
+          createdAtStr = existingRecipe.createdAt.toISOString();
+        }
+      } else if (typeof existingRecipe.createdAt === "string") {
+        createdAtStr = existingRecipe.createdAt;
+      } else {
+        createdAtStr = new Date().toISOString();
+      }
+
       const mergedData = {
         ...existingRecipe,
         ...cleanedUpdates,
