@@ -8,6 +8,7 @@ import {
   remove,
   child,
   Database,
+  update,
 } from "firebase/database";
 import { getAuth, Auth } from "firebase/auth";
 import { initializeApp, FirebaseApp } from "firebase/app";
@@ -152,12 +153,40 @@ export class FirebaseRepository implements IRecipeRepository {
     await this.ensureAuthenticated();
 
     try {
+      // Get the existing recipe first
+      const existingRecipe = await this.getById(id);
+      if (!existingRecipe) {
+        return null;
+      }
+
       // Remove id and createdAt from updates if present
       const { id: _, createdAt: __, ...safeUpdates } = updates;
       const cleanedUpdates = cleanObject(safeUpdates);
 
+      // Merge with existing data to preserve all fields
+      let createdAtStr: string;
+
+      if (existingRecipe.createdAt instanceof Date) {
+        // Validate the date is valid
+        if (isNaN(existingRecipe.createdAt.getTime())) {
+          createdAtStr = new Date().toISOString();
+        } else {
+          createdAtStr = existingRecipe.createdAt.toISOString();
+        }
+      } else if (typeof existingRecipe.createdAt === "string") {
+        createdAtStr = existingRecipe.createdAt;
+      } else {
+        createdAtStr = new Date().toISOString();
+      }
+
+      const mergedData = {
+        ...existingRecipe,
+        ...cleanedUpdates,
+        createdAt: createdAtStr,
+      };
+
       const recipeRef = child(this.getUserRecipesRef(), id);
-      await set(recipeRef, cleanedUpdates);
+      await set(recipeRef, mergedData);
 
       return this.getById(id);
     } catch (error) {
@@ -227,7 +256,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "adicionar à lista de compras",
+        "adicionar à lista de compras"
       );
       console.error("Erro ao adicionar à lista de compras:", error);
       throw new Error(errorMessage);
@@ -252,7 +281,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "remover da lista de compras",
+        "remover da lista de compras"
       );
       console.error("Erro ao remover da lista de compras:", error);
       throw new Error(errorMessage);
@@ -313,7 +342,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async getSharedRecipe(
-    shareId: string,
+    shareId: string
   ): Promise<(Recipe & { authorId: string }) | null> {
     try {
       const sharedRecipeRef = ref(this.db, `sharedRecipes/${shareId}`);
@@ -333,7 +362,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "obter receita compartilhada",
+        "obter receita compartilhada"
       );
       console.error("Erro ao obter receita compartilhada:", error);
       throw new Error(errorMessage);
@@ -360,7 +389,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "importar receita compartilhada",
+        "importar receita compartilhada"
       );
       console.error("Erro ao importar receita compartilhada:", error);
       throw new Error(errorMessage);
