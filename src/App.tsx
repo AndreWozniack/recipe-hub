@@ -15,6 +15,7 @@ import RecipeDetail from "./pages/RecipeDetail";
 import SharedRecipe from "./pages/SharedRecipe";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ShoppingListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/perfil"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
                   </ProtectedRoute>
                 }
               />
