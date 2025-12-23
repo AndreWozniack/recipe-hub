@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -46,11 +46,15 @@
     --sidebar-ring: 25 95% 53%;
 
     /* Custom tokens */
-    --warm-gradient: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(35 95% 60%) 100%);
+    --warm-gradient: linear-gradient(
+      135deg,
+      hsl(25 95% 53%) 0%,
+      hsl(35 95% 60%) 100%
+    );
     --card-shadow: 0 4px 20px -4px hsl(25 30% 20% / 0.08);
     --card-shadow-hover: 0 12px 32px -8px hsl(25 30% 20% / 0.15);
-    --font-display: 'Playfair Display', serif;
-    --font-body: 'Source Sans 3', sans-serif;
+    --font-display: "Playfair Display", serif;
+    --font-body: "Source Sans 3", sans-serif;
   }
 
   .dark {
@@ -106,7 +110,12 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
   }
 }
@@ -115,19 +124,19 @@
   .font-display {
     font-family: var(--font-display);
   }
-  
+
   .font-body {
     font-family: var(--font-body);
   }
-  
+
   .gradient-primary {
     background: var(--warm-gradient);
   }
-  
+
   .shadow-card {
     box-shadow: var(--card-shadow);
   }
-  
+
   .shadow-card-hover {
     box-shadow: var(--card-shadow-hover);
   }

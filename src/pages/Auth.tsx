@@ -1,26 +1,39 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/auth/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { ChefHat, Mail, Lock, User } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/auth/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { ChefHat, Mail, Lock, User } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, loading, error, isAuthenticated } = useAuth();
+  const {
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    loading,
+    error,
+    isAuthenticated,
+  } = useAuth();
   const { toast } = useToast();
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    navigate('/');
+    navigate("/");
     return null;
   }
 
@@ -28,15 +41,18 @@ export default function Auth() {
     try {
       await signInWithGoogle();
       toast({
-        title: 'Bem-vindo!',
-        description: 'Login realizado com sucesso.',
+        title: "Bem-vindo!",
+        description: "Login realizado com sucesso.",
       });
-      navigate('/');
+      navigate("/");
     } catch (err) {
       toast({
-        title: 'Erro no login',
-        description: err instanceof Error ? err.message : 'Falha ao fazer login com Google',
-        variant: 'destructive',
+        title: "Erro no login",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Falha ao fazer login com Google",
+        variant: "destructive",
       });
     }
   };
@@ -45,24 +61,25 @@ export default function Auth() {
     e.preventDefault();
     if (!email || !password) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha email e senha.',
-        variant: 'destructive',
+        title: "Campos obrigatórios",
+        description: "Preencha email e senha.",
+        variant: "destructive",
       });
       return;
     }
     try {
       await signInWithEmail(email, password);
       toast({
-        title: 'Bem-vindo!',
-        description: 'Login realizado com sucesso.',
+        title: "Bem-vindo!",
+        description: "Login realizado com sucesso.",
       });
-      navigate('/');
+      navigate("/");
     } catch (err) {
       toast({
-        title: 'Erro no login',
-        description: err instanceof Error ? err.message : 'Email ou senha incorretos',
-        variant: 'destructive',
+        title: "Erro no login",
+        description:
+          err instanceof Error ? err.message : "Email ou senha incorretos",
+        variant: "destructive",
       });
     }
   };
@@ -71,40 +88,41 @@ export default function Auth() {
     e.preventDefault();
     if (!email || !password) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha email e senha.',
-        variant: 'destructive',
+        title: "Campos obrigatórios",
+        description: "Preencha email e senha.",
+        variant: "destructive",
       });
       return;
     }
     if (password !== confirmPassword) {
       toast({
-        title: 'Senhas não conferem',
-        description: 'A senha e confirmação devem ser iguais.',
-        variant: 'destructive',
+        title: "Senhas não conferem",
+        description: "A senha e confirmação devem ser iguais.",
+        variant: "destructive",
       });
       return;
     }
     if (password.length < 6) {
       toast({
-        title: 'Senha muito curta',
-        description: 'A senha deve ter pelo menos 6 caracteres.',
-        variant: 'destructive',
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
       });
       return;
     }
     try {
       await signUpWithEmail(email, password);
       toast({
-        title: 'Conta criada!',
-        description: 'Sua conta foi criada com sucesso.',
+        title: "Conta criada!",
+        description: "Sua conta foi criada com sucesso.",
       });
-      navigate('/');
+      navigate("/");
     } catch (err) {
       toast({
-        title: 'Erro ao criar conta',
-        description: err instanceof Error ? err.message : 'Falha ao criar conta',
-        variant: 'destructive',
+        title: "Erro ao criar conta",
+        description:
+          err instanceof Error ? err.message : "Falha ao criar conta",
+        variant: "destructive",
       });
     }
   };
@@ -117,7 +135,9 @@ export default function Auth() {
             <ChefHat className="w-8 h-8 text-primary-foreground" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-display">Meu Livro de Receitas</CardTitle>
+            <CardTitle className="text-2xl font-display">
+              Meu Livro de Receitas
+            </CardTitle>
             <CardDescription>Entre para acessar suas receitas</CardDescription>
           </div>
         </CardHeader>
@@ -165,7 +185,7 @@ export default function Auth() {
               <TabsTrigger value="login">Entrar</TabsTrigger>
               <TabsTrigger value="signup">Criar conta</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login" className="space-y-4 mt-4">
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -199,11 +219,11 @@ export default function Auth() {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Entrando...' : 'Entrar'}
+                  {loading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup" className="space-y-4 mt-4">
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
@@ -252,7 +272,7 @@ export default function Auth() {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Criando...' : 'Criar conta'}
+                  {loading ? "Criando..." : "Criar conta"}
                 </Button>
               </form>
             </TabsContent>

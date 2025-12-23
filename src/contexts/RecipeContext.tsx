@@ -10,7 +10,7 @@ interface RecipeContextType {
   addRecipe: (recipe: Omit<Recipe, "id" | "createdAt">) => Promise<Recipe>;
   updateRecipe: (
     id: string,
-    recipe: Partial<Recipe>
+    recipe: Partial<Recipe>,
   ) => Promise<Recipe | null | undefined>;
   deleteRecipe: (id: string) => Promise<boolean>;
   toggleFavorite: (id: string) => Promise<Recipe | null | undefined>;

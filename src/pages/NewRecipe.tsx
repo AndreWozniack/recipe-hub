@@ -1,5 +1,5 @@
-import { Header } from '@/components/layout/Header';
-import { RecipeForm } from '@/components/recipes/RecipeForm';
+import { Header } from "@/components/layout/Header";
+import { RecipeForm } from "@/components/recipes/RecipeForm";
 
 const NewRecipe = () => {
   return (

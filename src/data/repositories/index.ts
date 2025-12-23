@@ -12,7 +12,7 @@ let repositoryInstance: IRecipeRepository | null = null;
  * Call this at app startup.
  */
 export function initializeRepository(
-  config: DatabaseConfig
+  config: DatabaseConfig,
 ): IRecipeRepository {
   repositoryInstance = createRepository(config);
   return repositoryInstance;
@@ -40,7 +40,7 @@ export function createRepository(config: DatabaseConfig): IRecipeRepository {
 export function getRepository(): IRecipeRepository {
   if (!repositoryInstance) {
     throw new Error(
-      "Repository not initialized. Call initializeRepository() first."
+      "Repository not initialized. Call initializeRepository() first.",
     );
   }
   return repositoryInstance;

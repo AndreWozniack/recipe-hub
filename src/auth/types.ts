@@ -1,6 +1,6 @@
 /**
  * Authentication Layer Types
- * 
+ *
  * This abstraction allows switching between different auth providers
  * (Firebase, custom backend, etc.) without changing the rest of the app.
  */
@@ -21,21 +21,21 @@ export interface AuthState {
 export interface IAuthProvider {
   // Get current user
   getCurrentUser(): AuthUser | null;
-  
+
   // Auth state listener
   onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void;
-  
+
   // Sign in methods
   signInWithGoogle(): Promise<AuthUser>;
   signInWithEmail(email: string, password: string): Promise<AuthUser>;
   signUpWithEmail(email: string, password: string): Promise<AuthUser>;
-  
+
   // Sign out
   signOut(): Promise<void>;
 }
 
 // Provider types
-export type AuthProviderType = 'firebase' | 'custom';
+export type AuthProviderType = "firebase" | "custom";
 
 export interface AuthConfig {
   provider: AuthProviderType;

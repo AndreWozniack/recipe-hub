@@ -55,7 +55,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository]
+    [repository],
   );
 
   const updateRecipe = useCallback(
@@ -64,7 +64,7 @@ export function useRepository() {
         const updatedRecipe = await repository.update(id, updates);
         if (updatedRecipe) {
           setRecipes((prev) =>
-            prev.map((recipe) => (recipe.id === id ? updatedRecipe : recipe))
+            prev.map((recipe) => (recipe.id === id ? updatedRecipe : recipe)),
           );
         }
         setError(null);
@@ -77,7 +77,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository]
+    [repository],
   );
 
   const deleteRecipe = useCallback(
@@ -87,7 +87,7 @@ export function useRepository() {
         if (success) {
           setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
           setShoppingList((prev) =>
-            prev.filter((item) => item.recipeId !== id)
+            prev.filter((item) => item.recipeId !== id),
           );
         }
         setError(null);
@@ -100,7 +100,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository]
+    [repository],
   );
 
   const toggleFavorite = useCallback(
@@ -110,7 +110,7 @@ export function useRepository() {
         return updateRecipe(id, { isFavorite: !recipe.isFavorite });
       }
     },
-    [recipes, updateRecipe]
+    [recipes, updateRecipe],
   );
 
   // Shopping list operations
@@ -132,7 +132,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository, shoppingList]
+    [repository, shoppingList],
   );
 
   const removeFromShoppingList = useCallback(
@@ -140,7 +140,7 @@ export function useRepository() {
       try {
         await repository.removeFromShoppingList(recipeId);
         setShoppingList((prev) =>
-          prev.filter((item) => item.recipeId !== recipeId)
+          prev.filter((item) => item.recipeId !== recipeId),
         );
         setError(null);
       } catch (err) {
@@ -153,7 +153,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository]
+    [repository],
   );
 
   const clearShoppingList = useCallback(async () => {

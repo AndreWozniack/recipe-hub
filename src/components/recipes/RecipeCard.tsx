@@ -1,11 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Clock, Users, Heart, ChefHat, ShoppingCart, Trash2 } from 'lucide-react';
-import { Recipe, CATEGORIES, DIFFICULTY_LABELS } from '@/types/recipe';
-import { useRecipes } from '@/contexts/RecipeContext';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Clock,
+  Users,
+  Heart,
+  ChefHat,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
+import { Recipe, CATEGORIES, DIFFICULTY_LABELS } from "@/types/recipe";
+import { useRecipes } from "@/contexts/RecipeContext";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -14,8 +21,11 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, index }: RecipeCardProps) {
   const navigate = useNavigate();
-  const { toggleFavorite, addToShoppingList, shoppingList, deleteRecipe } = useRecipes();
-  const isInShoppingList = shoppingList.some((item) => item.recipeId === recipe.id);
+  const { toggleFavorite, addToShoppingList, shoppingList, deleteRecipe } =
+    useRecipes();
+  const isInShoppingList = shoppingList.some(
+    (item) => item.recipeId === recipe.id,
+  );
 
   const categoryLabels = recipe.categories
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
@@ -31,7 +41,7 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
     e.stopPropagation();
     if (confirm(`Tem certeza que deseja excluir "${recipe.title}"?`)) {
       deleteRecipe(recipe.id);
-      toast.success('Receita excluída com sucesso!');
+      toast.success("Receita excluída com sucesso!");
     }
   };
 
@@ -53,7 +63,7 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <ChefHat className="h-16 w-16 text-primary/30" />
         </div>
-        
+
         {/* Favorite button */}
         <button
           onClick={handleFavorite}
@@ -61,8 +71,10 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
         >
           <Heart
             className={cn(
-              'h-5 w-5 transition-colors',
-              recipe.isFavorite ? 'fill-destructive text-destructive' : 'text-muted-foreground'
+              "h-5 w-5 transition-colors",
+              recipe.isFavorite
+                ? "fill-destructive text-destructive"
+                : "text-muted-foreground",
             )}
           />
         </button>
@@ -93,7 +105,7 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
         <h3 className="font-display text-lg font-semibold text-foreground line-clamp-1">
           {recipe.title}
         </h3>
-        
+
         {recipe.description && (
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {recipe.description}
@@ -124,14 +136,14 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
         {/* Actions */}
         <div className="mt-4">
           <Button
-            variant={isInShoppingList ? 'secondary' : 'default'}
+            variant={isInShoppingList ? "secondary" : "default"}
             size="sm"
             className="w-full gap-2"
             onClick={handleAddToList}
             disabled={isInShoppingList}
           >
             <ShoppingCart className="h-4 w-4" />
-            {isInShoppingList ? 'Na lista' : 'Adicionar à lista'}
+            {isInShoppingList ? "Na lista" : "Adicionar à lista"}
           </Button>
         </div>
       </div>

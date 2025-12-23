@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { CATEGORIES, Category } from '@/types/recipe';
-import { cn } from '@/lib/utils';
+import { motion } from "framer-motion";
+import { CATEGORIES, Category } from "@/types/recipe";
+import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
   selectedCategories: Category[];
@@ -23,10 +23,10 @@ export function CategoryFilter({
           whileTap={{ scale: 0.98 }}
           onClick={onShowAll}
           className={cn(
-            'rounded-full px-4 py-2 text-sm font-medium transition-all',
+            "rounded-full px-4 py-2 text-sm font-medium transition-all",
             showAll
-              ? 'bg-primary text-primary-foreground shadow-card'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              ? "bg-primary text-primary-foreground shadow-card"
+              : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
           )}
         >
           ✨ Todas
@@ -41,10 +41,10 @@ export function CategoryFilter({
             whileTap={{ scale: 0.98 }}
             onClick={() => onToggleCategory(category.id)}
             className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
+              "rounded-full px-4 py-2 text-sm font-medium transition-all",
               isSelected
-                ? 'bg-primary text-primary-foreground shadow-card'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                ? "bg-primary text-primary-foreground shadow-card"
+                : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
             )}
           >
             {category.icon} {category.label}

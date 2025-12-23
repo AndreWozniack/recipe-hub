@@ -56,7 +56,7 @@ export function RecipeForm() {
     setCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -95,10 +95,10 @@ export function RecipeForm() {
   const handleIngredientChange = (
     id: string,
     field: keyof Ingredient,
-    value: string
+    value: string,
   ) => {
     setIngredients((prev) =>
-      prev.map((ing) => (ing.id === id ? { ...ing, [field]: value } : ing))
+      prev.map((ing) => (ing.id === id ? { ...ing, [field]: value } : ing)),
     );
   };
 
@@ -242,7 +242,7 @@ export function RecipeForm() {
                   handleIngredientChange(
                     ingredient.id,
                     "quantity",
-                    e.target.value
+                    e.target.value,
                   )
                 }
                 className="w-20"

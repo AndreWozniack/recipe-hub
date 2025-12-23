@@ -18,7 +18,6 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Initialize Firebase repository
 initializeRepository({
   provider: "firebase",
   firebaseConfig: authConfig.firebaseConfig!,
