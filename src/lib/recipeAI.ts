@@ -1,5 +1,8 @@
 import { Category, Difficulty, Ingredient } from "@/types/recipe";
 
+// Variável global definida pelo Vite em tempo de build
+declare const __API_ENDPOINT__: string;
+
 export interface AIRecipeResponse {
   title: string;
   description?: string;
@@ -17,25 +20,22 @@ export interface AIRecipeResponse {
  * @returns Structured recipe data
  */
 export async function parseRecipeWithAI(
-  recipeText: string
+  recipeText: string,
 ): Promise<AIRecipeResponse> {
   if (!recipeText || recipeText.trim().length < 50) {
     throw new Error("Texto da receita deve ter pelo menos 50 caracteres");
   }
 
   try {
-    const response = await fetch(
-      "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          recipeText: recipeText.trim(),
-        }),
-      }
-    );
+    const response = await fetch(__API_ENDPOINT__, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        recipeText: recipeText.trim(),
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -62,7 +62,7 @@ function normalizeAIResponse(response: AIRecipeResponse): AIRecipeResponse {
       name: ing.name || "",
       quantity: ing.quantity || "",
       unit: ing.unit || "",
-    })
+    }),
   );
 
   // Mapear dificuldade para português

@@ -1,23 +1,29 @@
-import type { IAuthProvider, AuthConfig, AuthProviderType } from './types';
-import { FirebaseAuthProvider } from './providers/FirebaseAuthProvider';
-import { CustomAuthProvider } from './providers/CustomAuthProvider';
+import type { IAuthProvider, AuthConfig, AuthProviderType } from "./types";
+import { FirebaseAuthProvider } from "./providers/FirebaseAuthProvider";
+import { CustomAuthProvider } from "./providers/CustomAuthProvider";
 
-export type { IAuthProvider, AuthConfig, AuthProviderType, AuthUser, AuthState } from './types';
+export type {
+  IAuthProvider,
+  AuthConfig,
+  AuthProviderType,
+  AuthUser,
+  AuthState,
+} from "./types";
 
 // Singleton instance
 let authProviderInstance: IAuthProvider | null = null;
 
 /**
  * Factory function to create the appropriate auth provider.
- * 
+ *
  * Usage:
- * 
+ *
  * // For Firebase
  * const auth = createAuthProvider({
  *   provider: 'firebase',
  *   firebaseConfig: { ... }
  * });
- * 
+ *
  * // For custom backend
  * const auth = createAuthProvider({
  *   provider: 'custom',
@@ -26,9 +32,9 @@ let authProviderInstance: IAuthProvider | null = null;
  */
 export function createAuthProvider(config: AuthConfig): IAuthProvider {
   switch (config.provider) {
-    case 'firebase':
+    case "firebase":
       return new FirebaseAuthProvider(config);
-    case 'custom':
+    case "custom":
       return new CustomAuthProvider(config);
     default:
       throw new Error(`Unknown auth provider: ${config.provider}`);
@@ -42,7 +48,7 @@ export function createAuthProvider(config: AuthConfig): IAuthProvider {
 export function getAuthProvider(): IAuthProvider {
   if (!authProviderInstance) {
     throw new Error(
-      'Auth provider not initialized. Call initializeAuth() first.'
+      "Auth provider not initialized. Call initializeAuth() first.",
     );
   }
   return authProviderInstance;
@@ -68,7 +74,7 @@ export function isAuthInitialized(): boolean {
  * Get current provider type
  */
 export function getCurrentAuthProvider(): AuthProviderType | null {
-  if (authProviderInstance instanceof FirebaseAuthProvider) return 'firebase';
-  if (authProviderInstance instanceof CustomAuthProvider) return 'custom';
+  if (authProviderInstance instanceof FirebaseAuthProvider) return "firebase";
+  if (authProviderInstance instanceof CustomAuthProvider) return "custom";
   return null;
 }

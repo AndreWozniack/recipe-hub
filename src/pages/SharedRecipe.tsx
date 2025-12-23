@@ -17,7 +17,7 @@ import { useRecipes } from "@/contexts/RecipeContext";
 
 interface SharedRecipeRepository {
   getSharedRecipe(
-    shareId: string
+    shareId: string,
   ): Promise<(Recipe & { authorId: string }) | null>;
 }
 
@@ -43,7 +43,7 @@ export default function SharedRecipe() {
   const { addRecipe } = useRecipes();
 
   const [recipe, setRecipe] = useState<(Recipe & { authorId: string }) | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);

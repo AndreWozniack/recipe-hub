@@ -44,7 +44,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
       return () => unsubscribe();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to initialize auth"
+        err instanceof Error ? err.message : "Failed to initialize auth",
       );
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
       await provider.signInWithGoogle();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to sign in with Google"
+        err instanceof Error ? err.message : "Failed to sign in with Google",
       );
       throw err;
     } finally {
@@ -80,7 +80,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
         setLoading(false);
       }
     },
-    [provider]
+    [provider],
   );
 
   const signUpWithEmail = useCallback(
@@ -97,7 +97,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
         setLoading(false);
       }
     },
-    [provider]
+    [provider],
   );
 
   const signOut = useCallback(async () => {

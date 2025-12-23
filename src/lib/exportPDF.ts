@@ -1,18 +1,18 @@
 // src/lib/exportPDF.ts
-import { Recipe } from '@/types/recipe';
+import { Recipe } from "@/types/recipe";
 
 export function exportRecipeToPDF(recipe: Recipe) {
   const categoryLabels = recipe.categories
     .map((catId) => {
       const categories = [
-        { id: 'breakfast', label: 'Café da Manhã', icon: '🌅' },
-        { id: 'lunch', label: 'Almoço', icon: '🍽️' },
-        { id: 'dinner', label: 'Jantar', icon: '🌙' },
-        { id: 'dessert', label: 'Sobremesa', icon: '🍰' },
-        { id: 'snack', label: 'Lanche', icon: '🥪' },
-        { id: 'beverage', label: 'Bebida', icon: '🥤' },
+        { id: "breakfast", label: "Café da Manhã", icon: "🌅" },
+        { id: "lunch", label: "Almoço", icon: "🍽️" },
+        { id: "dinner", label: "Jantar", icon: "🌙" },
+        { id: "dessert", label: "Sobremesa", icon: "🍰" },
+        { id: "snack", label: "Lanche", icon: "🥪" },
+        { id: "beverage", label: "Bebida", icon: "🥤" },
       ];
-      return categories.find((c) => c.id === catId)?.label || '';
+      return categories.find((c) => c.id === catId)?.label || "";
     })
     .filter(Boolean);
 
@@ -123,16 +123,16 @@ export function exportRecipeToPDF(recipe: Recipe) {
       <body>
         <div class="header">
           <h1>${recipe.title}</h1>
-          ${recipe.description ? `<p class="description">${recipe.description}</p>` : ''}
+          ${recipe.description ? `<p class="description">${recipe.description}</p>` : ""}
           <div class="categories">
-            ${categoryLabels.map((cat) => `<span class="category-badge">${cat}</span>`).join('')}
+            ${categoryLabels.map((cat) => `<span class="category-badge">${cat}</span>`).join("")}
           </div>
         </div>
 
         <div class="meta-info">
-          ${recipe.prepTime ? `<div class="meta-item">⏱️ Tempo: ${recipe.prepTime} min</div>` : ''}
-          ${recipe.servings ? `<div class="meta-item">👥 Porções: ${recipe.servings}</div>` : ''}
-          ${recipe.difficulty ? `<div class="meta-item">📊 Dificuldade: ${recipe.difficulty}</div>` : ''}
+          ${recipe.prepTime ? `<div class="meta-item">⏱️ Tempo: ${recipe.prepTime} min</div>` : ""}
+          ${recipe.servings ? `<div class="meta-item">👥 Porções: ${recipe.servings}</div>` : ""}
+          ${recipe.difficulty ? `<div class="meta-item">📊 Dificuldade: ${recipe.difficulty}</div>` : ""}
         </div>
 
         <h2>📋 Ingredientes</h2>
@@ -141,23 +141,25 @@ export function exportRecipeToPDF(recipe: Recipe) {
             .map(
               (ing) =>
                 `<li><span class="ingredient-name">${ing.name}</span> ${
-                  ing.quantity ? `<span class="ingredient-qty">(${ing.quantity} ${ing.unit || ''})</span>` : ''
-                }</li>`
+                  ing.quantity
+                    ? `<span class="ingredient-qty">(${ing.quantity} ${ing.unit || ""})</span>`
+                    : ""
+                }</li>`,
             )
-            .join('')}
+            .join("")}
         </ul>
 
         <h2>👨‍🍳 Modo de Preparo</h2>
         <div class="instructions">${recipe.instructions}</div>
 
         <div class="footer">
-          <p>Gerado em ${new Date().toLocaleDateString('pt-BR')} - Recipe Hub</p>
+          <p>Gerado em ${new Date().toLocaleDateString("pt-BR")} - Recipe Hub</p>
         </div>
       </body>
     </html>
   `;
 
-  const printWindow = window.open('', '', 'height=800,width=800');
+  const printWindow = window.open("", "", "height=800,width=800");
   if (printWindow) {
     printWindow.document.write(htmlContent);
     printWindow.document.close();

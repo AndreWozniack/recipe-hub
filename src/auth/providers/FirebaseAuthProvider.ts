@@ -1,4 +1,4 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
+import { initializeApp, FirebaseApp } from "firebase/app";
 import {
   getAuth,
   Auth,
@@ -9,8 +9,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User as FirebaseUser,
-} from 'firebase/auth';
-import { IAuthProvider, AuthUser, AuthConfig } from '../types';
+} from "firebase/auth";
+import { IAuthProvider, AuthUser, AuthConfig } from "../types";
 
 function mapFirebaseUser(user: FirebaseUser | null): AuthUser | null {
   if (!user) return null;
@@ -29,7 +29,7 @@ export class FirebaseAuthProvider implements IAuthProvider {
 
   constructor(config: AuthConfig) {
     if (!config.firebaseConfig) {
-      throw new Error('Firebase configuration is required');
+      throw new Error("Firebase configuration is required");
     }
 
     this.app = initializeApp(config.firebaseConfig);
@@ -50,21 +50,25 @@ export class FirebaseAuthProvider implements IAuthProvider {
   async signInWithGoogle(): Promise<AuthUser> {
     const result = await signInWithPopup(this.auth, this.googleProvider);
     const user = mapFirebaseUser(result.user);
-    if (!user) throw new Error('Failed to sign in with Google');
+    if (!user) throw new Error("Failed to sign in with Google");
     return user;
   }
 
   async signInWithEmail(email: string, password: string): Promise<AuthUser> {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
     const user = mapFirebaseUser(result.user);
-    if (!user) throw new Error('Failed to sign in');
+    if (!user) throw new Error("Failed to sign in");
     return user;
   }
 
   async signUpWithEmail(email: string, password: string): Promise<AuthUser> {
-    const result = await createUserWithEmailAndPassword(this.auth, email, password);
+    const result = await createUserWithEmailAndPassword(
+      this.auth,
+      email,
+      password,
+    );
     const user = mapFirebaseUser(result.user);
-    if (!user) throw new Error('Failed to sign up');
+    if (!user) throw new Error("Failed to sign up");
     return user;
   }
 

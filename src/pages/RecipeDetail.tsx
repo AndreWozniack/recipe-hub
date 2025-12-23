@@ -84,7 +84,7 @@ export default function RecipeDetail() {
     setIngredients(
       r.ingredients.length > 0
         ? r.ingredients
-        : [{ id: crypto.randomUUID(), name: "", quantity: "", unit: "" }]
+        : [{ id: crypto.randomUUID(), name: "", quantity: "", unit: "" }],
     );
     setInstructions(r.instructions);
     setPrepTime(r.prepTime?.toString() || "");
@@ -107,7 +107,7 @@ export default function RecipeDetail() {
   }
 
   const isInShoppingList = shoppingList.some(
-    (item) => item.recipeId === recipe.id
+    (item) => item.recipeId === recipe.id,
   );
   const categoryLabels = recipe.categories
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
@@ -117,7 +117,7 @@ export default function RecipeDetail() {
     setCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -137,12 +137,12 @@ export default function RecipeDetail() {
   const handleIngredientChange = (
     ingredientId: string,
     field: keyof Ingredient,
-    value: string
+    value: string,
   ) => {
     setIngredients((prev) =>
       prev.map((ing) =>
-        ing.id === ingredientId ? { ...ing, [field]: value } : ing
-      )
+        ing.id === ingredientId ? { ...ing, [field]: value } : ing,
+      ),
     );
   };
 
@@ -249,7 +249,7 @@ export default function RecipeDetail() {
                     "h-6 w-6 transition-colors",
                     recipe.isFavorite
                       ? "fill-destructive text-destructive"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 />
               </button>
@@ -446,7 +446,7 @@ export default function RecipeDetail() {
                       handleIngredientChange(
                         ingredient.id,
                         "name",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     className="flex-1"
@@ -458,7 +458,7 @@ export default function RecipeDetail() {
                       handleIngredientChange(
                         ingredient.id,
                         "quantity",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     className="w-20"
@@ -470,7 +470,7 @@ export default function RecipeDetail() {
                       handleIngredientChange(
                         ingredient.id,
                         "unit",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     className="w-24"

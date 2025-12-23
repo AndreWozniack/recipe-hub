@@ -1,17 +1,17 @@
-import { Link, useLocation } from 'react-router-dom';
-import { ChefHat, Plus, ShoppingCart, LogOut, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useRecipes } from '@/contexts/RecipeContext';
-import { useAuth } from '@/auth/AuthContext';
-import { motion } from 'framer-motion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Link, useLocation } from "react-router-dom";
+import { ChefHat, Plus, ShoppingCart, LogOut, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useRecipes } from "@/contexts/RecipeContext";
+import { useAuth } from "@/auth/AuthContext";
+import { motion } from "framer-motion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
   const location = useLocation();
@@ -23,14 +23,14 @@ export function Header() {
     try {
       await signOut();
       toast({
-        title: 'Até logo!',
-        description: 'Você saiu da sua conta.',
+        title: "Até logo!",
+        description: "Você saiu da sua conta.",
       });
     } catch (err) {
       toast({
-        title: 'Erro',
-        description: 'Falha ao sair da conta.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Falha ao sair da conta.",
+        variant: "destructive",
       });
     }
   };
@@ -50,7 +50,9 @@ export function Header() {
         <nav className="flex items-center gap-2">
           <Link to="/nova-receita">
             <Button
-              variant={location.pathname === '/nova-receita' ? 'default' : 'ghost'}
+              variant={
+                location.pathname === "/nova-receita" ? "default" : "ghost"
+              }
               size="sm"
               className="gap-2"
             >
@@ -58,10 +60,12 @@ export function Header() {
               <span className="hidden sm:inline">Nova Receita</span>
             </Button>
           </Link>
-          
+
           <Link to="/lista-de-compras">
             <Button
-              variant={location.pathname === '/lista-de-compras' ? 'default' : 'ghost'}
+              variant={
+                location.pathname === "/lista-de-compras" ? "default" : "ghost"
+              }
               size="sm"
               className="relative gap-2"
             >
@@ -84,18 +88,26 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2 pl-2">
                   <Avatar className="h-7 w-7">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'Usuário'} />
+                    <AvatarImage
+                      src={user.photoURL || undefined}
+                      alt={user.displayName || "Usuário"}
+                    />
                     <AvatarFallback className="text-xs">
-                      {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      {user.displayName?.charAt(0) ||
+                        user.email?.charAt(0) ||
+                        "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden sm:inline text-sm truncate max-w-[100px]">
-                    {user.displayName || user.email?.split('@')[0]}
+                    {user.displayName || user.email?.split("@")[0]}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>

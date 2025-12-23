@@ -18,7 +18,7 @@ import { Recipe } from "@/types/recipe";
 
 interface SharedRecipeRepository {
   getSharedRecipe(
-    shareId: string
+    shareId: string,
   ): Promise<(Recipe & { authorId: string }) | null>;
 }
 
@@ -52,7 +52,7 @@ export function ImportSharedRecipeDialog() {
 
     if (!shareId) {
       toast.error(
-        "Link inválido. Cole um link compartilhado ou apenas o ID da receita."
+        "Link inválido. Cole um link compartilhado ou apenas o ID da receita.",
       );
       return;
     }
@@ -64,7 +64,7 @@ export function ImportSharedRecipeDialog() {
 
       if (!sharedRecipe) {
         toast.error(
-          "Receita não encontrada. Verifique o link e tente novamente."
+          "Receita não encontrada. Verifique o link e tente novamente.",
         );
         setLoading(false);
         return;

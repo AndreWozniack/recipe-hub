@@ -74,7 +74,7 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
     const subject = `Compartilhei uma receita com você: ${recipe.title}`;
     const body = `Veja esta receita incrível: ${shareLink}`;
     const emailUrl = `mailto:?subject=${encodeURIComponent(
-      subject
+      subject,
     )}&body=${encodeURIComponent(body)}`;
     window.open(emailUrl);
   };

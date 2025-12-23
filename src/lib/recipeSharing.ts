@@ -34,7 +34,7 @@ export function shareViaEmail(recipeTitle: string, link: string): void {
   const subject = `Compartilhei uma receita com você: ${recipeTitle}`;
   const body = `Veja esta receita incrível: ${link}`;
   const emailUrl = `mailto:?subject=${encodeURIComponent(
-    subject
+    subject,
   )}&body=${encodeURIComponent(body)}`;
   window.open(emailUrl);
 }
@@ -44,7 +44,7 @@ export function shareViaEmail(recipeTitle: string, link: string): void {
  */
 export function shareViaFacebook(link: string): void {
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-    link
+    link,
   )}`;
   window.open(facebookUrl, "_blank", "width=600,height=400");
 }

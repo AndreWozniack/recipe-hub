@@ -1,11 +1,19 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Trash2, Copy, Check, ArrowLeft, X, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useRecipes } from '@/contexts/RecipeContext';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import {
+  ShoppingCart,
+  Trash2,
+  Copy,
+  Check,
+  ArrowLeft,
+  X,
+  Plus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useRecipes } from "@/contexts/RecipeContext";
+import { toast } from "sonner";
 
 export function ShoppingList() {
   const navigate = useNavigate();
@@ -34,17 +42,17 @@ export function ShoppingList() {
   const handleCopyList = () => {
     const listText = ingredients
       .map((ing) => `☐ ${ing.quantity} ${ing.unit} - ${ing.name}`)
-      .join('\n');
-    
+      .join("\n");
+
     navigator.clipboard.writeText(listText);
-    toast.success('Lista copiada para a área de transferência!');
+    toast.success("Lista copiada para a área de transferência!");
   };
 
   const handleClearList = () => {
-    if (confirm('Tem certeza que deseja limpar toda a lista de compras?')) {
+    if (confirm("Tem certeza que deseja limpar toda a lista de compras?")) {
       clearShoppingList();
       setCheckedItems(new Set());
-      toast.success('Lista de compras limpa!');
+      toast.success("Lista de compras limpa!");
     }
   };
 
@@ -62,9 +70,10 @@ export function ShoppingList() {
           Lista de Compras Vazia
         </h2>
         <p className="mt-2 max-w-sm text-muted-foreground">
-          Adicione receitas à sua lista de compras para gerar uma lista unificada de ingredientes.
+          Adicione receitas à sua lista de compras para gerar uma lista
+          unificada de ingredientes.
         </p>
-        <Button className="mt-6 gap-2" onClick={() => navigate('/')}>
+        <Button className="mt-6 gap-2" onClick={() => navigate("/")}>
           <Plus className="h-4 w-4" />
           Explorar Receitas
         </Button>
@@ -88,7 +97,8 @@ export function ShoppingList() {
             Lista de Compras
           </h1>
           <p className="text-muted-foreground">
-            {shoppingList.length} receita{shoppingList.length !== 1 && 's'} • {ingredients.length} ingrediente{ingredients.length !== 1 && 's'}
+            {shoppingList.length} receita{shoppingList.length !== 1 && "s"} •{" "}
+            {ingredients.length} ingrediente{ingredients.length !== 1 && "s"}
           </p>
         </div>
       </div>
@@ -129,7 +139,12 @@ export function ShoppingList() {
             Lista Unificada
           </h2>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCopyList} className="gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyList}
+              className="gap-2"
+            >
               <Copy className="h-4 w-4" />
               Copiar
             </Button>
@@ -165,18 +180,18 @@ export function ShoppingList() {
                   <label
                     htmlFor={ingredient.id}
                     className={`flex-1 cursor-pointer transition-all ${
-                      isChecked ? 'text-muted-foreground line-through' : 'text-foreground'
+                      isChecked
+                        ? "text-muted-foreground line-through"
+                        : "text-foreground"
                     }`}
                   >
                     <span className="font-medium">
                       {ingredient.quantity} {ingredient.unit}
                     </span>
-                    {' - '}
+                    {" - "}
                     {ingredient.name}
                   </label>
-                  {isChecked && (
-                    <Check className="h-4 w-4 text-accent" />
-                  )}
+                  {isChecked && <Check className="h-4 w-4 text-accent" />}
                 </motion.div>
               );
             })}
