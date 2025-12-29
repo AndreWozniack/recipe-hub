@@ -256,7 +256,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "adicionar à lista de compras"
+        "adicionar à lista de compras",
       );
       console.error("Erro ao adicionar à lista de compras:", error);
       throw new Error(errorMessage);
@@ -281,7 +281,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "remover da lista de compras"
+        "remover da lista de compras",
       );
       console.error("Erro ao remover da lista de compras:", error);
       throw new Error(errorMessage);
@@ -342,7 +342,7 @@ export class FirebaseRepository implements IRecipeRepository {
   }
 
   async getSharedRecipe(
-    shareId: string
+    shareId: string,
   ): Promise<(Recipe & { authorId: string }) | null> {
     try {
       const sharedRecipeRef = ref(this.db, `sharedRecipes/${shareId}`);
@@ -362,7 +362,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "obter receita compartilhada"
+        "obter receita compartilhada",
       );
       console.error("Erro ao obter receita compartilhada:", error);
       throw new Error(errorMessage);
@@ -389,7 +389,7 @@ export class FirebaseRepository implements IRecipeRepository {
     } catch (error) {
       const errorMessage = this.formatError(
         error,
-        "importar receita compartilhada"
+        "importar receita compartilhada",
       );
       console.error("Erro ao importar receita compartilhada:", error);
       throw new Error(errorMessage);
