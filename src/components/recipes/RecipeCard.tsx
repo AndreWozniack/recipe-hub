@@ -7,6 +7,7 @@ import {
   ChefHat,
   ShoppingCart,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { Recipe, CATEGORIES, DIFFICULTY_LABELS } from "@/types/recipe";
 import { useRecipes } from "@/contexts/RecipeContext";
@@ -27,27 +28,29 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
     (item) => item.recipeId === recipe.id,
   );
 
-  const categoryLabels = recipe.categories
+  const categoryLabels = (recipe.categories ?? [])
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
     .filter(Boolean);
 
   const handleAddToList = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToShoppingList(recipe.id, recipe.title);
-    toast.success(`${recipe.title} adicionada à lista de compras!`);
+    void addToShoppingList(recipe.id, recipe.title).then(() => {
+      toast.success(`${recipe.title} adicionada à lista de compras!`);
+    });
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm(`Tem certeza que deseja excluir "${recipe.title}"?`)) {
-      deleteRecipe(recipe.id);
-      toast.success("Receita excluída com sucesso!");
+      void deleteRecipe(recipe.id).then(() => {
+        toast.success("Receita excluída com sucesso!");
+      });
     }
   };
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFavorite(recipe.id);
+    void toggleFavorite(recipe.id);
   };
 
   return (
@@ -79,13 +82,23 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
           />
         </button>
 
-        {/* Delete button */}
-        <button
-          onClick={handleDelete}
-          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm opacity-0 transition-all group-hover:opacity-100 hover:scale-110 hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <div className="absolute left-3 top-3 flex gap-2 opacity-0 transition-all group-hover:opacity-100">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/receita/${recipe.id}/editar`);
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-all hover:scale-110"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-all hover:scale-110 hover:bg-destructive hover:text-destructive-foreground"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
 
         {/* Categories */}
         <div className="absolute bottom-3 left-3 flex flex-wrap gap-1">

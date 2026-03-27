@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Upload, Wand2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ export function ImportRecipeDialog({
   const [open, setOpen] = useState(false);
   const [recipeText, setRecipeText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleImport = async () => {
     if (!recipeText.trim()) {
@@ -32,12 +33,12 @@ export function ImportRecipeDialog({
     }
 
     setLoading(true);
-    try {
-      const toastId = toast.loading("Processando receita com IA...");
+    setErrorMessage(null);
+    const toastId = toast.loading("Processando receita com IA...");
 
+    try {
       const parsedRecipe = await parseRecipeWithAI(recipeText);
 
-      toast.dismiss(toastId);
       toast.success("Receita processada com sucesso!");
 
       setRecipeText("");
@@ -49,15 +50,27 @@ export function ImportRecipeDialog({
         error instanceof Error
           ? error.message
           : "Erro ao importar receita. Tente novamente.";
+      setErrorMessage(message);
       toast.error(message);
       console.error("Erro ao importar:", error);
     } finally {
+      toast.dismiss(toastId);
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!loading) {
+          setOpen(nextOpen);
+          if (!nextOpen) {
+            setErrorMessage(null);
+          }
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Wand2 className="h-4 w-4" />
@@ -89,16 +102,25 @@ export function ImportRecipeDialog({
             />
           </div>
 
+          {errorMessage && (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+              {errorMessage}
+            </div>
+          )}
+
           <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
             💡 <strong>Dica:</strong> Quanto mais detalhes sobre a receita você
             fornecer, melhor será o resultado. Inclua ingredientes, modo de
             preparo, tempo, dificuldade, etc.
           </div>
 
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <Button
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                setErrorMessage(null);
+              }}
               disabled={loading}
             >
               Cancelar

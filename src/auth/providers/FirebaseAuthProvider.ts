@@ -1,4 +1,4 @@
-import { initializeApp, FirebaseApp } from "firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   getAuth,
   Auth,
@@ -11,6 +11,7 @@ import {
   User as FirebaseUser,
 } from "firebase/auth";
 import { IAuthProvider, AuthUser, AuthConfig } from "../types";
+import { getOrCreateFirebaseApp } from "@/lib/firebase";
 
 function mapFirebaseUser(user: FirebaseUser | null): AuthUser | null {
   if (!user) return null;
@@ -32,7 +33,7 @@ export class FirebaseAuthProvider implements IAuthProvider {
       throw new Error("Firebase configuration is required");
     }
 
-    this.app = initializeApp(config.firebaseConfig);
+    this.app = getOrCreateFirebaseApp(config.firebaseConfig);
     this.auth = getAuth(this.app);
     this.googleProvider = new GoogleAuthProvider();
   }

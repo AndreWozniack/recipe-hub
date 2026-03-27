@@ -2,6 +2,7 @@ import React, { createContext, useContext } from "react";
 import { Recipe, Ingredient } from "@/types/recipe";
 import { useRepository } from "@/hooks/useRepository";
 import { ShoppingListItem } from "@/data/repositories";
+import { useAuth } from "@/auth/AuthContext";
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -25,10 +26,16 @@ interface RecipeContextType {
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
 
 export function RecipeProvider({ children }: { children: React.ReactNode }) {
-  const repository = useRepository();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const repository = useRepository({ enabled: isAuthenticated });
 
   return (
-    <RecipeContext.Provider value={repository}>
+    <RecipeContext.Provider
+      value={{
+        ...repository,
+        loading: authLoading || repository.loading,
+      }}
+    >
       {children}
     </RecipeContext.Provider>
   );

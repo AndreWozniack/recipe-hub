@@ -11,7 +11,8 @@ import {
   update,
 } from "firebase/database";
 import { getAuth, Auth } from "firebase/auth";
-import { initializeApp, FirebaseApp } from "firebase/app";
+import { FirebaseApp } from "firebase/app";
+import { getOrCreateFirebaseApp } from "@/lib/firebase";
 
 // Helper function to remove undefined values from objects
 function cleanObject<T extends Record<string, unknown>>(obj: T): Partial<T> {
@@ -40,7 +41,7 @@ export class FirebaseRepository implements IRecipeRepository {
     measurementId?: string;
     databaseURL?: string;
   }) {
-    this.app = initializeApp(firebaseConfig);
+    this.app = getOrCreateFirebaseApp(firebaseConfig);
     this.db = getDatabase(this.app);
     this.auth = getAuth(this.app);
 
@@ -134,12 +135,13 @@ export class FirebaseRepository implements IRecipeRepository {
       });
 
       // Generate a new key
-      const newRecipeRef = child(recipesRef, Date.now().toString());
+      const recipeId = Date.now().toString();
+      const newRecipeRef = child(recipesRef, recipeId);
       await set(newRecipeRef, cleanedRecipe);
 
       return {
         ...recipe,
-        id: Date.now().toString(),
+        id: recipeId,
         createdAt: new Date(),
       } as Recipe;
     } catch (error) {
@@ -272,11 +274,11 @@ export class FirebaseRepository implements IRecipeRepository {
 
       if (snapshot.exists()) {
         const data = snapshot.val() as Record<string, ShoppingListItem>;
-        Object.entries(data).forEach(([key, item]) => {
-          if (item.recipeId === recipeId) {
-            remove(child(shoppingListRef, key));
-          }
-        });
+        await Promise.all(
+          Object.entries(data)
+            .filter(([, item]) => item.recipeId === recipeId)
+            .map(([key]) => remove(child(shoppingListRef, key))),
+        );
       }
     } catch (error) {
       const errorMessage = this.formatError(

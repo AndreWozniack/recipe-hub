@@ -2,6 +2,33 @@ import { useState, useEffect, useCallback } from "react";
 import { Recipe, Ingredient } from "@/types/recipe";
 import { getRepository, ShoppingListItem } from "@/data/repositories";
 
+interface UseRepositoryOptions {
+  enabled?: boolean;
+}
+
+const normalizeRecipe = (recipe: Recipe): Recipe => ({
+  ...recipe,
+  title: recipe.title || "Receita sem nome",
+  description: recipe.description || "",
+  categories: Array.isArray(recipe.categories) ? recipe.categories : [],
+  ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+  instructions: recipe.instructions || "",
+  isFavorite: Boolean(recipe.isFavorite),
+});
+
+const normalizeIngredientText = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const toSortableNumber = (value: string) => {
+  const normalized = value.replace(",", ".").trim();
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 /**
  * Custom hook that provides access to the repository layer.
  * This hook abstracts the data layer and provides reactive state management.
@@ -9,7 +36,7 @@ import { getRepository, ShoppingListItem } from "@/data/repositories";
  * The underlying repository can be switched between localStorage, Supabase, or AWS
  * without changing any component code.
  */
-export function useRepository() {
+export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +46,14 @@ export function useRepository() {
 
   // Load initial data
   const loadData = useCallback(async () => {
+    if (!enabled) {
+      setRecipes([]);
+      setShoppingList([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -26,14 +61,14 @@ export function useRepository() {
         repository.getAll(),
         repository.getShoppingList(),
       ]);
-      setRecipes(recipesData);
+      setRecipes(recipesData.map(normalizeRecipe));
       setShoppingList(shoppingListData);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to load data"));
     } finally {
       setLoading(false);
     }
-  }, [repository]);
+  }, [enabled, repository]);
 
   useEffect(() => {
     loadData();
@@ -42,9 +77,13 @@ export function useRepository() {
   // Recipe operations
   const addRecipe = useCallback(
     async (recipe: Omit<Recipe, "id" | "createdAt">) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
       try {
         const newRecipe = await repository.create(recipe);
-        setRecipes((prev) => [newRecipe, ...prev]);
+        setRecipes((prev) => [normalizeRecipe(newRecipe), ...prev]);
         setError(null);
         return newRecipe;
       } catch (err) {
@@ -55,16 +94,22 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository],
+    [enabled, repository],
   );
 
   const updateRecipe = useCallback(
     async (id: string, updates: Partial<Recipe>) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
       try {
         const updatedRecipe = await repository.update(id, updates);
         if (updatedRecipe) {
           setRecipes((prev) =>
-            prev.map((recipe) => (recipe.id === id ? updatedRecipe : recipe)),
+            prev.map((recipe) =>
+              recipe.id === id ? normalizeRecipe(updatedRecipe) : recipe,
+            ),
           );
         }
         setError(null);
@@ -77,11 +122,15 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository],
+    [enabled, repository],
   );
 
   const deleteRecipe = useCallback(
     async (id: string) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
       try {
         const success = await repository.delete(id);
         if (success) {
@@ -100,7 +149,7 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository],
+    [enabled, repository],
   );
 
   const toggleFavorite = useCallback(
@@ -116,6 +165,10 @@ export function useRepository() {
   // Shopping list operations
   const addToShoppingList = useCallback(
     async (recipeId: string, recipeName: string) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
       try {
         if (!shoppingList.find((item) => item.recipeId === recipeId)) {
           await repository.addToShoppingList(recipeId, recipeName);
@@ -132,11 +185,15 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository, shoppingList],
+    [enabled, repository, shoppingList],
   );
 
   const removeFromShoppingList = useCallback(
     async (recipeId: string) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
       try {
         await repository.removeFromShoppingList(recipeId);
         setShoppingList((prev) =>
@@ -153,10 +210,14 @@ export function useRepository() {
         throw err;
       }
     },
-    [repository],
+    [enabled, repository],
   );
 
   const clearShoppingList = useCallback(async () => {
+    if (!enabled) {
+      throw new Error("Usuário não autenticado");
+    }
+
     try {
       await repository.clearShoppingList();
       setShoppingList([]);
@@ -168,7 +229,7 @@ export function useRepository() {
       console.error("Erro ao limpar lista de compras:", err);
       throw err;
     }
-  }, [repository]);
+  }, [enabled, repository]);
 
   const getShoppingListIngredients = useCallback((): Ingredient[] => {
     const ingredientMap = new Map<string, Ingredient>();
@@ -177,23 +238,42 @@ export function useRepository() {
       const recipe = recipes.find((r) => r.id === recipeId);
       if (recipe) {
         recipe.ingredients.forEach((ingredient) => {
-          const key = `${ingredient.name.toLowerCase()}-${ingredient.unit.toLowerCase()}`;
+          const normalizedName = normalizeIngredientText(ingredient.name);
+          const normalizedUnit = normalizeIngredientText(ingredient.unit);
+          const key = `${normalizedName}-${normalizedUnit}`;
+
+          if (!normalizedName) {
+            return;
+          }
+
           if (ingredientMap.has(key)) {
             const existing = ingredientMap.get(key)!;
-            const existingQty = parseFloat(existing.quantity) || 0;
-            const newQty = parseFloat(ingredient.quantity) || 0;
+            const existingQty = toSortableNumber(existing.quantity);
+            const newQty = toSortableNumber(ingredient.quantity);
+
             ingredientMap.set(key, {
               ...existing,
-              quantity: String(existingQty + newQty),
+              quantity:
+                existingQty !== null && newQty !== null
+                  ? String(existingQty + newQty)
+                  : existing.quantity || ingredient.quantity,
             });
           } else {
-            ingredientMap.set(key, { ...ingredient, id: crypto.randomUUID() });
+            ingredientMap.set(key, {
+              ...ingredient,
+              id: `${key}-${recipe.id}`,
+              name: ingredient.name.trim(),
+              quantity: ingredient.quantity.trim(),
+              unit: ingredient.unit.trim(),
+            });
           }
         });
       }
     });
 
-    return Array.from(ingredientMap.values());
+    return Array.from(ingredientMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, "pt-BR"),
+    );
   }, [recipes, shoppingList]);
 
   return {
