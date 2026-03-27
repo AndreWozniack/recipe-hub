@@ -7,14 +7,21 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   define: {
     __API_ENDPOINT__: JSON.stringify(
-      mode === "development"
-        ? "http://localhost:3000/parseRecipe"
-        : "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe",
+      process.env.VITE_API_ENDPOINT ||
+        (mode === "development"
+          ? "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe"
+          : "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe"),
     ),
   },
   server: {
-    host: "::",
+    host: true,
     port: 8080,
+    strictPort: true,
+  },
+  preview: {
+    host: true,
+    port: 8080,
+    strictPort: true,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean,

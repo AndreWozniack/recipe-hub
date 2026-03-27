@@ -3,6 +3,8 @@ import { Category, Difficulty, Ingredient } from "@/types/recipe";
 // Variável global definida pelo Vite em tempo de build
 declare const __API_ENDPOINT__: string;
 
+const REQUEST_TIMEOUT_MS = 45000;
+
 export interface AIRecipeResponse {
   title: string;
   description?: string;
@@ -27,19 +29,28 @@ export async function parseRecipeWithAI(
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(
+      () => controller.abort(),
+      REQUEST_TIMEOUT_MS,
+    );
+
     const response = await fetch(__API_ENDPOINT__, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
       body: JSON.stringify({
         recipeText: recipeText.trim(),
       }),
     });
 
+    window.clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Erro ao processar receita");
+      const errorMessage = await extractErrorMessage(response);
+      throw new Error(errorMessage);
     }
 
     const parsedRecipe = (await response.json()) as AIRecipeResponse;
@@ -48,9 +59,34 @@ export async function parseRecipeWithAI(
     return normalizeAIResponse(parsedRecipe);
   } catch (error) {
     if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        throw new Error(
+          "A IA demorou demais para responder. Tente novamente com um texto menor.",
+        );
+      }
+
+      if (error.message.includes("Failed to fetch")) {
+        throw new Error(
+          "Não foi possível conectar ao serviço de importação. Verifique se a API está no ar e tente novamente.",
+        );
+      }
+
       throw error;
     }
     throw new Error("Erro desconhecido ao processar receita");
+  }
+}
+
+async function extractErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: string; message?: string };
+    return (
+      data.error ||
+      data.message ||
+      `Erro ao processar receita (${response.status})`
+    );
+  } catch {
+    return `Erro ao processar receita (${response.status})`;
   }
 }
 
