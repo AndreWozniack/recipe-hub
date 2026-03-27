@@ -1,33 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { Recipe, Ingredient } from "@/types/recipe";
+import { Recipe, Ingredient, RecipeFolder } from "@/types/recipe";
 import { getRepository, ShoppingListItem } from "@/data/repositories";
+import {
+  buildShoppingListIngredients,
+  normalizeRecipe,
+} from "@/lib/recipeData";
 
 interface UseRepositoryOptions {
   enabled?: boolean;
 }
-
-const normalizeRecipe = (recipe: Recipe): Recipe => ({
-  ...recipe,
-  title: recipe.title || "Receita sem nome",
-  description: recipe.description || "",
-  categories: Array.isArray(recipe.categories) ? recipe.categories : [],
-  ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
-  instructions: recipe.instructions || "",
-  isFavorite: Boolean(recipe.isFavorite),
-});
-
-const normalizeIngredientText = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-const toSortableNumber = (value: string) => {
-  const normalized = value.replace(",", ".").trim();
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-};
 
 /**
  * Custom hook that provides access to the repository layer.
@@ -38,6 +19,7 @@ const toSortableNumber = (value: string) => {
  */
 export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [folders, setFolders] = useState<RecipeFolder[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -48,6 +30,7 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
   const loadData = useCallback(async () => {
     if (!enabled) {
       setRecipes([]);
+      setFolders([]);
       setShoppingList([]);
       setError(null);
       setLoading(false);
@@ -57,11 +40,13 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
     try {
       setLoading(true);
       setError(null);
-      const [recipesData, shoppingListData] = await Promise.all([
+      const [recipesData, foldersData, shoppingListData] = await Promise.all([
         repository.getAll(),
+        repository.getFolders(),
         repository.getShoppingList(),
       ]);
       setRecipes(recipesData.map(normalizeRecipe));
+      setFolders(foldersData);
       setShoppingList(shoppingListData);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to load data"));
@@ -162,6 +147,84 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
     [recipes, updateRecipe],
   );
 
+  const createFolder = useCallback(
+    async (name: string) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      try {
+        const folder = await repository.createFolder(name);
+        setFolders((prev) =>
+          [...prev, folder].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+        );
+        setError(null);
+        return folder;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Erro ao criar pasta";
+        setError(err instanceof Error ? err : new Error(message));
+        throw err;
+      }
+    },
+    [enabled, repository],
+  );
+
+  const updateFolder = useCallback(
+    async (id: string, updates: Partial<RecipeFolder>) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      try {
+        const folder = await repository.updateFolder(id, updates);
+        if (folder) {
+          setFolders((prev) =>
+            prev
+              .map((item) => (item.id === id ? folder : item))
+              .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+          );
+        }
+        setError(null);
+        return folder;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Erro ao atualizar pasta";
+        setError(err instanceof Error ? err : new Error(message));
+        throw err;
+      }
+    },
+    [enabled, repository],
+  );
+
+  const deleteFolder = useCallback(
+    async (id: string) => {
+      if (!enabled) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      try {
+        const success = await repository.deleteFolder(id);
+        if (success) {
+          setFolders((prev) => prev.filter((folder) => folder.id !== id));
+          setRecipes((prev) =>
+            prev.map((recipe) =>
+              recipe.folderId === id ? { ...recipe, folderId: null } : recipe,
+            ),
+          );
+        }
+        setError(null);
+        return success;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Erro ao excluir pasta";
+        setError(err instanceof Error ? err : new Error(message));
+        throw err;
+      }
+    },
+    [enabled, repository],
+  );
+
   // Shopping list operations
   const addToShoppingList = useCallback(
     async (recipeId: string, recipeName: string) => {
@@ -232,53 +295,13 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
   }, [enabled, repository]);
 
   const getShoppingListIngredients = useCallback((): Ingredient[] => {
-    const ingredientMap = new Map<string, Ingredient>();
-
-    shoppingList.forEach(({ recipeId }) => {
-      const recipe = recipes.find((r) => r.id === recipeId);
-      if (recipe) {
-        recipe.ingredients.forEach((ingredient) => {
-          const normalizedName = normalizeIngredientText(ingredient.name);
-          const normalizedUnit = normalizeIngredientText(ingredient.unit);
-          const key = `${normalizedName}-${normalizedUnit}`;
-
-          if (!normalizedName) {
-            return;
-          }
-
-          if (ingredientMap.has(key)) {
-            const existing = ingredientMap.get(key)!;
-            const existingQty = toSortableNumber(existing.quantity);
-            const newQty = toSortableNumber(ingredient.quantity);
-
-            ingredientMap.set(key, {
-              ...existing,
-              quantity:
-                existingQty !== null && newQty !== null
-                  ? String(existingQty + newQty)
-                  : existing.quantity || ingredient.quantity,
-            });
-          } else {
-            ingredientMap.set(key, {
-              ...ingredient,
-              id: `${key}-${recipe.id}`,
-              name: ingredient.name.trim(),
-              quantity: ingredient.quantity.trim(),
-              unit: ingredient.unit.trim(),
-            });
-          }
-        });
-      }
-    });
-
-    return Array.from(ingredientMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name, "pt-BR"),
-    );
+    return buildShoppingListIngredients(recipes, shoppingList);
   }, [recipes, shoppingList]);
 
   return {
     // State
     recipes,
+    folders,
     shoppingList,
     loading,
     error,
@@ -288,6 +311,9 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
     updateRecipe,
     deleteRecipe,
     toggleFavorite,
+    createFolder,
+    updateFolder,
+    deleteFolder,
 
     // Shopping list operations
     addToShoppingList,

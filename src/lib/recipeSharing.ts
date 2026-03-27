@@ -1,3 +1,5 @@
+import QRCode from "qrcode";
+
 /**
  * Cria um link de compartilhamento
  */
@@ -37,6 +39,20 @@ export function shareViaEmail(recipeTitle: string, link: string): void {
     subject,
   )}&body=${encodeURIComponent(body)}`;
   window.open(emailUrl);
+}
+
+/**
+ * Gera QR code em data URL para o link compartilhado
+ */
+export async function generateShareQRCode(link: string): Promise<string> {
+  return QRCode.toDataURL(link, {
+    width: 280,
+    margin: 2,
+    color: {
+      dark: "#3d220f",
+      light: "#ffffff",
+    },
+  });
 }
 
 /**

@@ -13,7 +13,16 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ChefHat, Mail, Lock, User } from "lucide-react";
+import {
+  ChefHat,
+  Mail,
+  Lock,
+  BookOpen,
+  Share2,
+  Sparkles,
+  ClipboardList,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -133,24 +142,100 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-card">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center">
-            <ChefHat className="w-8 h-8 text-primary-foreground" />
+    <div className="min-h-screen bg-background">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_hsl(25_95%_53%_/_0.14),_transparent_30%),radial-gradient(circle_at_80%_25%,_hsl(142_60%_45%_/_0.12),_transparent_28%),linear-gradient(180deg,_hsl(40_33%_99%),_hsl(40_25%_96%))]" />
+
+      <div className="container mx-auto grid min-h-screen gap-10 px-4 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <div className="hidden lg:block">
+          <div className="max-w-xl space-y-8">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-3 rounded-full border border-border/70 bg-background/70 px-4 py-2 shadow-card"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl gradient-primary">
+                <ChefHat className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <p className="font-display text-xl text-foreground">
+                  Livro de Receitas
+                </p>
+                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                  digital e compartilhavel
+                </p>
+              </div>
+            </Link>
+
+            <div className="space-y-5">
+              <h1 className="font-display text-6xl leading-[0.95] tracking-tight text-foreground">
+                Guarde suas receitas como quem monta um acervo.
+              </h1>
+              <p className="text-lg leading-8 text-muted-foreground">
+                Salve receitas em um livro digital bonito, busque rapidamente,
+                compartilhe por link e gere listas de compras em segundos.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-card">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <p className="mt-4 font-medium text-foreground">
+                  Biblioteca pessoal
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Receitas organizadas por categoria, favoritas e busca.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-card">
+                <Share2 className="h-5 w-5 text-primary" />
+                <p className="mt-4 font-medium text-foreground">
+                  Compartilhamento instantâneo
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Envie um link limpo para familiares, amigos ou clientes.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-card">
+                <ClipboardList className="h-5 w-5 text-primary" />
+                <p className="mt-4 font-medium text-foreground">
+                  Lista de compras pronta
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Reúna ingredientes automaticamente antes de cozinhar.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-card">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <p className="mt-4 font-medium text-foreground">
+                  Importação com IA
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Converta receitas copiadas da internet em fichas organizadas.
+                </p>
+              </div>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-display">
-              Meu Livro de Receitas
-            </CardTitle>
-            <CardDescription>Entre para acessar suas receitas</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        </div>
+
+        <Card className="mx-auto w-full max-w-md border-border/70 bg-card/90 shadow-[0_24px_80px_-24px_hsl(25_30%_20%_/_0.28)] backdrop-blur">
+          <CardHeader className="space-y-4 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary">
+              <ChefHat className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <div>
+              <CardTitle className="text-3xl font-display">
+                Seu livro de receitas digital
+              </CardTitle>
+              <CardDescription className="mt-2 text-sm leading-6">
+                Entre para salvar receitas, compartilhar links e organizar tudo
+                em um só lugar.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
           {/* Google Sign In */}
           <Button
             variant="outline"
-            className="w-full h-12 text-base"
+            className="h-12 w-full text-base"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -172,7 +257,7 @@ export default function Auth() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continuar com Google
+            Entrar com Google
           </Button>
 
           <div className="relative">
@@ -180,7 +265,7 @@ export default function Auth() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">ou</span>
+              <span className="bg-card px-2 text-muted-foreground">ou use email</span>
             </div>
           </div>
 
@@ -224,7 +309,7 @@ export default function Auth() {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Entrando..." : "Entrar"}
+                  {loading ? "Entrando..." : "Acessar meu acervo"}
                 </Button>
               </form>
             </TabsContent>
@@ -277,13 +362,19 @@ export default function Auth() {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Criando..." : "Criar conta"}
+                  {loading ? "Criando..." : "Criar meu livro digital"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="rounded-2xl bg-secondary/70 p-4 text-sm leading-6 text-muted-foreground">
+            Ideal para uso pessoal, famílias, creators de culinária e pequenos
+            negócios que querem organizar receitas de forma profissional.
+          </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

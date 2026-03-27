@@ -21,6 +21,7 @@ export interface Ingredient {
 export interface Recipe {
   id: string;
   userId?: string; // Owner of the recipe
+  folderId?: string | null;
   title: string;
   description?: string;
   categories: Category[];
@@ -31,6 +32,12 @@ export interface Recipe {
   difficulty?: Difficulty;
   isFavorite: boolean;
   imageUrl?: string;
+  createdAt: Date;
+}
+
+export interface RecipeFolder {
+  id: string;
+  name: string;
   createdAt: Date;
 }
 

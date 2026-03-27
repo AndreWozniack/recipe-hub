@@ -7,6 +7,7 @@ Um aplicativo web completo para gerenciar, compartilhar e organizar suas receita
 ## 📋 Índice Rápido
 
 - [Estrutura do Projeto](#estrutura-do-projeto)
+- [Esteira de Qualidade e Deploy](#-esteira-de-qualidade-e-deploy)
 - [Autenticação](#autenticação)
 - [CRUD de Receitas](#crud-de-receitas)
 - [Compartilhamento de Receitas](#compartilhamento-de-receitas)
@@ -14,6 +15,36 @@ Um aplicativo web completo para gerenciar, compartilhar e organizar suas receita
 - [Páginas Principais](#páginas-principais)
 - [Componentes Reutilizáveis](#componentes-reutilizáveis)
 - [Tipos e Contextos](#tipos-e-contextos)
+
+---
+
+## 🚦 Esteira de Qualidade e Deploy
+
+### Scripts principais
+
+- `npm run typecheck`: valida TypeScript
+- `npm run test:ci`: executa testes unitários
+- `npm run build`: gera build de produção
+
+### CI
+
+O workflow [`CI`](./.github/workflows/ci.yml) roda em push e pull request e executa:
+
+1. `npm ci`
+2. `npm run typecheck`
+3. `npm run test:ci`
+4. `npm run build`
+
+### CD
+
+O workflow [`Deploy`](./.github/workflows/deploy.yml) faz deploy para Firebase Hosting ao publicar na branch `main`.
+
+Para habilitar, configure estes secrets no GitHub:
+
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_SERVICE_ACCOUNT`
+
+O app está configurado como SPA em [`firebase.json`](./firebase.json), com rewrite de todas as rotas para `index.html`.
 
 ---
 
