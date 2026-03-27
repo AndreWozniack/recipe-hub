@@ -19,6 +19,7 @@ import UserProfile from "./pages/UserProfile";
 import EditRecipe from "./pages/EditRecipe";
 import Landing from "./pages/Landing";
 import { useAuth } from "@/auth/AuthContext";
+import CookRecipe from "./pages/CookRecipe";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <EditRecipe />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/receita/:id/fazer"
+                element={
+                  <ProtectedRoute>
+                    <CookRecipe />
                   </ProtectedRoute>
                 }
               />

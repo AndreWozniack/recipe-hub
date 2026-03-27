@@ -12,6 +12,7 @@ import {
   Pencil,
   Trash2,
   Download,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareRecipeDialog } from "@/components/recipes/ShareRecipeDialog";
@@ -109,6 +110,14 @@ export default function RecipeDetail() {
               Voltar para receitas
             </Button>
             <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate(`/receita/${recipe.id}/fazer`)}
+              >
+                <PlayCircle className="h-4 w-4" />
+                Fazer receita
+              </Button>
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
                 <Download className="mr-2 h-4 w-4" />
                 Exportar PDF

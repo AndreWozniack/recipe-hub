@@ -12,6 +12,12 @@ export default defineConfig(({ mode }) => ({
           ? "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe"
           : "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/parseRecipe"),
     ),
+    __COOK_MODE_API_ENDPOINT__: JSON.stringify(
+      process.env.VITE_COOK_MODE_API_ENDPOINT ||
+        (mode === "development"
+          ? "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/generateCookMode"
+          : "https://v1a40itwqj.execute-api.us-east-1.amazonaws.com/dev/generateCookMode"),
+    ),
   },
   server: {
     host: true,
