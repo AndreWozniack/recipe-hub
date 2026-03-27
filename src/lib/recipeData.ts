@@ -23,6 +23,23 @@ export const normalizeRecipe = (recipe: Recipe): Recipe => ({
   ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
   instructions: recipe.instructions || "",
   isFavorite: Boolean(recipe.isFavorite),
+  cookMode:
+    recipe.cookMode &&
+    Array.isArray(recipe.cookMode.steps) &&
+    recipe.cookMode.steps.length > 0
+      ? {
+          summary: recipe.cookMode.summary || "",
+          estimatedTotalMinutes: recipe.cookMode.estimatedTotalMinutes,
+          steps: recipe.cookMode.steps.map((step, index) => ({
+            id: step.id || `step-${index + 1}`,
+            title: step.title || `Passo ${index + 1}`,
+            instruction: step.instruction || step.title || "",
+            estimatedMinutes: step.estimatedMinutes,
+            ingredients: Array.isArray(step.ingredients) ? step.ingredients : [],
+            tips: Array.isArray(step.tips) ? step.tips : [],
+          })),
+        }
+      : null,
 });
 
 export function buildShoppingListIngredients(

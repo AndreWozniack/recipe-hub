@@ -5,9 +5,25 @@ import {
   buildShoppingListIngredients,
   normalizeRecipe,
 } from "@/lib/recipeData";
+import { generateStructuredCookMode } from "@/lib/recipeCookAI";
 
 interface UseRepositoryOptions {
   enabled?: boolean;
+}
+
+const COOK_MODE_RELEVANT_FIELDS: Array<keyof Recipe> = [
+  "title",
+  "description",
+  "categories",
+  "ingredients",
+  "instructions",
+  "prepTime",
+  "servings",
+  "difficulty",
+];
+
+function shouldRefreshCookMode(updates: Partial<Recipe>) {
+  return COOK_MODE_RELEVANT_FIELDS.some((field) => field in updates);
 }
 
 /**
@@ -59,6 +75,30 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
     loadData();
   }, [loadData]);
 
+  const persistCookMode = useCallback(
+    async (recipe: Recipe) => {
+      if (!enabled || recipe.cookMode?.steps.length || !recipe.instructions.trim()) {
+        return;
+      }
+
+      try {
+        const cookMode = await generateStructuredCookMode(recipe);
+        const updatedRecipe = await repository.update(recipe.id, { cookMode });
+
+        if (updatedRecipe) {
+          setRecipes((prev) =>
+            prev.map((item) =>
+              item.id === recipe.id ? normalizeRecipe(updatedRecipe) : item,
+            ),
+          );
+        }
+      } catch (err) {
+        console.error("Erro ao gerar cook mode persistido:", err);
+      }
+    },
+    [enabled, repository],
+  );
+
   // Recipe operations
   const addRecipe = useCallback(
     async (recipe: Omit<Recipe, "id" | "createdAt">) => {
@@ -68,8 +108,10 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
 
       try {
         const newRecipe = await repository.create(recipe);
-        setRecipes((prev) => [normalizeRecipe(newRecipe), ...prev]);
+        const normalizedRecipe = normalizeRecipe(newRecipe);
+        setRecipes((prev) => [normalizedRecipe, ...prev]);
         setError(null);
+        void persistCookMode(normalizedRecipe);
         return newRecipe;
       } catch (err) {
         const message =
@@ -79,7 +121,7 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
         throw err;
       }
     },
-    [enabled, repository],
+    [enabled, persistCookMode, repository],
   );
 
   const updateRecipe = useCallback(
@@ -89,13 +131,21 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
       }
 
       try {
-        const updatedRecipe = await repository.update(id, updates);
+        const refreshCookMode = shouldRefreshCookMode(updates);
+        const updatedRecipe = await repository.update(
+          id,
+          refreshCookMode ? { ...updates, cookMode: null } : updates,
+        );
         if (updatedRecipe) {
+          const normalizedRecipe = normalizeRecipe(updatedRecipe);
           setRecipes((prev) =>
             prev.map((recipe) =>
-              recipe.id === id ? normalizeRecipe(updatedRecipe) : recipe,
+              recipe.id === id ? normalizedRecipe : recipe,
             ),
           );
+          if (refreshCookMode) {
+            void persistCookMode(normalizedRecipe);
+          }
         }
         setError(null);
         return updatedRecipe;
@@ -107,7 +157,7 @@ export function useRepository({ enabled = true }: UseRepositoryOptions = {}) {
         throw err;
       }
     },
-    [enabled, repository],
+    [enabled, persistCookMode, repository],
   );
 
   const deleteRecipe = useCallback(

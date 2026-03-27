@@ -17,27 +17,24 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRecipes } from "@/contexts/RecipeContext";
-import { DIFFICULTY_LABELS } from "@/types/recipe";
+import { CookModeStep, DIFFICULTY_LABELS } from "@/types/recipe";
 import {
   buildCookModeIngredients,
   getRecipeServings,
   parseInstructionSteps,
 } from "@/lib/recipeCooking";
-import {
-  generateStructuredCookMode,
-  StructuredCookStep,
-} from "@/lib/recipeCookAI";
+import { generateStructuredCookMode } from "@/lib/recipeCookAI";
 import { toast } from "sonner";
 
 export default function CookRecipe() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { recipes, loading } = useRecipes();
+  const { recipes, loading, updateRecipe } = useRecipes();
   const recipe = useMemo(() => recipes.find((item) => item.id === id), [id, recipes]);
   const [hasStarted, setHasStarted] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetServings, setTargetServings] = useState<number | string>("");
-  const [steps, setSteps] = useState<StructuredCookStep[]>([]);
+  const [steps, setSteps] = useState<CookModeStep[]>([]);
   const [cookSummary, setCookSummary] = useState("");
   const [cookModeLoading, setCookModeLoading] = useState(true);
   const [usingFallbackSteps, setUsingFallbackSteps] = useState(false);
@@ -67,6 +64,17 @@ export default function CookRecipe() {
     const loadCookMode = async () => {
       setCookModeLoading(true);
 
+      if (recipe.cookMode?.steps.length) {
+        setSteps(recipe.cookMode.steps);
+        setCookSummary(
+          recipe.cookMode.summary ||
+            "Modo de preparo pronto para esta receita.",
+        );
+        setUsingFallbackSteps(false);
+        setCookModeLoading(false);
+        return;
+      }
+
       try {
         const cookMode = await generateStructuredCookMode(recipe);
         if (cancelled) {
@@ -75,6 +83,7 @@ export default function CookRecipe() {
         setSteps(cookMode.steps);
         setCookSummary(cookMode.summary);
         setUsingFallbackSteps(false);
+        void updateRecipe(recipe.id, { cookMode });
       } catch (error) {
         if (cancelled) {
           return;
@@ -111,7 +120,7 @@ export default function CookRecipe() {
     return () => {
       cancelled = true;
     };
-  }, [recipe]);
+  }, [recipe, updateRecipe]);
 
   if (loading) {
     return (

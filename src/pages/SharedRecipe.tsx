@@ -111,6 +111,7 @@ export default function SharedRecipe() {
         servings: recipe.servings,
         difficulty: recipe.difficulty,
         isFavorite: false,
+        cookMode: recipe.cookMode || null,
       });
 
       toast.success("Receita adicionada à sua biblioteca!");

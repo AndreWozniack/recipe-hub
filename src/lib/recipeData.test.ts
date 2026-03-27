@@ -34,6 +34,39 @@ describe("normalizeRecipe", () => {
     expect(result.instructions).toBe("");
     expect(result.isFavorite).toBe(false);
   });
+
+  it("normaliza cook mode salvo para reutilizacao futura", () => {
+    const result = normalizeRecipe({
+      ...baseRecipe,
+      cookMode: {
+        summary: "",
+        steps: [
+          {
+            id: "",
+            title: "",
+            instruction: "",
+            ingredients: undefined as unknown as string[],
+            tips: undefined as unknown as string[],
+          },
+        ],
+      },
+    });
+
+    expect(result.cookMode).toEqual({
+      summary: "",
+      estimatedTotalMinutes: undefined,
+      steps: [
+        {
+          id: "step-1",
+          title: "Passo 1",
+          instruction: "",
+          estimatedMinutes: undefined,
+          ingredients: [],
+          tips: [],
+        },
+      ],
+    });
+  });
 });
 
 describe("buildShoppingListIngredients", () => {

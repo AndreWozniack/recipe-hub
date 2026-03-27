@@ -18,6 +18,21 @@ export interface Ingredient {
   unit: string;
 }
 
+export interface CookModeStep {
+  id: string;
+  title: string;
+  instruction: string;
+  estimatedMinutes?: number;
+  ingredients: string[];
+  tips: string[];
+}
+
+export interface CookMode {
+  summary: string;
+  estimatedTotalMinutes?: number;
+  steps: CookModeStep[];
+}
+
 export interface Recipe {
   id: string;
   userId?: string; // Owner of the recipe
@@ -32,6 +47,7 @@ export interface Recipe {
   difficulty?: Difficulty;
   isFavorite: boolean;
   imageUrl?: string;
+  cookMode?: CookMode | null;
   createdAt: Date;
 }
 
