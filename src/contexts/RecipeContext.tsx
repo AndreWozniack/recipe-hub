@@ -1,11 +1,12 @@
 import React, { createContext, useContext } from "react";
-import { Recipe, Ingredient } from "@/types/recipe";
+import { Recipe, Ingredient, RecipeFolder } from "@/types/recipe";
 import { useRepository } from "@/hooks/useRepository";
 import { ShoppingListItem } from "@/data/repositories";
 import { useAuth } from "@/auth/AuthContext";
 
 interface RecipeContextType {
   recipes: Recipe[];
+  folders: RecipeFolder[];
   loading: boolean;
   error: Error | null;
   addRecipe: (recipe: Omit<Recipe, "id" | "createdAt">) => Promise<Recipe>;
@@ -15,6 +16,12 @@ interface RecipeContextType {
   ) => Promise<Recipe | null | undefined>;
   deleteRecipe: (id: string) => Promise<boolean>;
   toggleFavorite: (id: string) => Promise<Recipe | null | undefined>;
+  createFolder: (name: string) => Promise<RecipeFolder>;
+  updateFolder: (
+    id: string,
+    updates: Partial<RecipeFolder>,
+  ) => Promise<RecipeFolder | null | undefined>;
+  deleteFolder: (id: string) => Promise<boolean>;
   shoppingList: ShoppingListItem[];
   addToShoppingList: (recipeId: string, recipeName: string) => Promise<void>;
   removeFromShoppingList: (recipeId: string) => Promise<void>;

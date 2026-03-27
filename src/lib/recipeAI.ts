@@ -90,7 +90,9 @@ async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
-function normalizeAIResponse(response: AIRecipeResponse): AIRecipeResponse {
+export function normalizeAIResponse(
+  response: AIRecipeResponse,
+): AIRecipeResponse {
   // Garantir que ingredients tem IDs
   const ingredients: Ingredient[] = (response.ingredients || []).map(
     (ing: Ingredient) => ({

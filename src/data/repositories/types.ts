@@ -1,4 +1,4 @@
-import { Recipe, Ingredient } from "@/types/recipe";
+import { Recipe, Ingredient, RecipeFolder } from "@/types/recipe";
 
 // Base repository interface for CRUD operations
 export interface IRecipeRepository {
@@ -8,6 +8,12 @@ export interface IRecipeRepository {
   create(recipe: Omit<Recipe, "id" | "createdAt">): Promise<Recipe>;
   update(id: string, updates: Partial<Recipe>): Promise<Recipe | null>;
   delete(id: string): Promise<boolean>;
+
+  // Folders
+  getFolders(): Promise<RecipeFolder[]>;
+  createFolder(name: string): Promise<RecipeFolder>;
+  updateFolder(id: string, updates: Partial<RecipeFolder>): Promise<RecipeFolder | null>;
+  deleteFolder(id: string): Promise<boolean>;
 
   // Shopping List
   getShoppingList(): Promise<ShoppingListItem[]>;

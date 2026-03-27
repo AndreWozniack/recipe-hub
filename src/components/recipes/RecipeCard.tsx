@@ -1,3 +1,4 @@
+import type { DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -8,8 +9,14 @@ import {
   ShoppingCart,
   Trash2,
   Pencil,
+  FolderOpen,
 } from "lucide-react";
-import { Recipe, CATEGORIES, DIFFICULTY_LABELS } from "@/types/recipe";
+import {
+  Recipe,
+  RecipeFolder,
+  CATEGORIES,
+  DIFFICULTY_LABELS,
+} from "@/types/recipe";
 import { useRecipes } from "@/contexts/RecipeContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,9 +25,10 @@ import { toast } from "sonner";
 interface RecipeCardProps {
   recipe: Recipe;
   index: number;
+  folder?: RecipeFolder | null;
 }
 
-export function RecipeCard({ recipe, index }: RecipeCardProps) {
+export function RecipeCard({ recipe, index, folder }: RecipeCardProps) {
   const navigate = useNavigate();
   const { toggleFavorite, addToShoppingList, shoppingList, deleteRecipe } =
     useRecipes();
@@ -58,6 +66,12 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
+      draggable
+      onDragStartCapture={(event) => {
+        const dragEvent = event as unknown as DragEvent<HTMLElement>;
+        dragEvent.dataTransfer.setData("text/recipe-id", recipe.id);
+        dragEvent.dataTransfer.effectAllowed = "move";
+      }}
       onClick={() => navigate(`/receita/${recipe.id}`)}
       className="group relative cursor-pointer overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-300 hover:shadow-card-hover"
     >
@@ -123,6 +137,13 @@ export function RecipeCard({ recipe, index }: RecipeCardProps) {
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {recipe.description}
           </p>
+        )}
+
+        {folder && (
+          <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+            <FolderOpen className="h-3.5 w-3.5" />
+            {folder.name}
+          </div>
         )}
 
         {/* Meta info */}

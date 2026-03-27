@@ -1,4 +1,4 @@
-import { Recipe } from "@/types/recipe";
+import { Recipe, RecipeFolder } from "@/types/recipe";
 import { IRecipeRepository, ShoppingListItem } from "./types";
 import {
   getDatabase,
@@ -73,6 +73,13 @@ export class FirebaseRepository implements IRecipeRepository {
       throw new Error("User must be authenticated");
     }
     return ref(this.db, `users/${this.userId}/shoppingList`);
+  }
+
+  private getUserFoldersRef() {
+    if (!this.userId) {
+      throw new Error("User must be authenticated");
+    }
+    return ref(this.db, `users/${this.userId}/folders`);
   }
 
   // Recipe methods
@@ -216,6 +223,113 @@ export class FirebaseRepository implements IRecipeRepository {
     }
   }
 
+  async getFolders(): Promise<RecipeFolder[]> {
+    await this.ensureAuthenticated();
+
+    try {
+      const foldersRef = this.getUserFoldersRef();
+      const snapshot = await get(foldersRef);
+
+      if (!snapshot.exists()) {
+        return [];
+      }
+
+      const data = snapshot.val() as Record<string, Omit<RecipeFolder, "id">>;
+      return Object.entries(data)
+        .map(([id, folder]) => ({
+          ...folder,
+          id,
+          createdAt: new Date(folder.createdAt),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    } catch (error) {
+      const errorMessage = this.formatError(error, "carregar pastas");
+      console.error("Erro ao carregar pastas:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  async createFolder(name: string): Promise<RecipeFolder> {
+    await this.ensureAuthenticated();
+
+    try {
+      const folderId = Date.now().toString();
+      const folderRef = child(this.getUserFoldersRef(), folderId);
+      const folder = {
+        name: name.trim(),
+        createdAt: new Date().toISOString(),
+      };
+      await set(folderRef, folder);
+
+      return {
+        id: folderId,
+        name: folder.name,
+        createdAt: new Date(folder.createdAt),
+      };
+    } catch (error) {
+      const errorMessage = this.formatError(error, "criar pasta");
+      console.error("Erro ao criar pasta:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  async updateFolder(
+    id: string,
+    updates: Partial<RecipeFolder>,
+  ): Promise<RecipeFolder | null> {
+    await this.ensureAuthenticated();
+
+    try {
+      const folderRef = child(this.getUserFoldersRef(), id);
+      const snapshot = await get(folderRef);
+
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      const existing = snapshot.val() as { name: string; createdAt: string };
+      const merged = cleanObject({
+        ...existing,
+        name: updates.name ?? existing.name,
+        createdAt: existing.createdAt,
+      }) as { name: string; createdAt: string };
+
+      await set(folderRef, merged);
+
+      return {
+        name: merged.name,
+        id,
+        createdAt: new Date(String(merged.createdAt)),
+      };
+    } catch (error) {
+      const errorMessage = this.formatError(error, "atualizar pasta");
+      console.error("Erro ao atualizar pasta:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  async deleteFolder(id: string): Promise<boolean> {
+    await this.ensureAuthenticated();
+
+    try {
+      const folderRef = child(this.getUserFoldersRef(), id);
+      await remove(folderRef);
+
+      const recipes = await this.getAll();
+      await Promise.all(
+        recipes
+          .filter((recipe) => recipe.folderId === id)
+          .map((recipe) => this.update(recipe.id, { folderId: null })),
+      );
+
+      return true;
+    } catch (error) {
+      const errorMessage = this.formatError(error, "excluir pasta");
+      console.error("Erro ao excluir pasta:", error);
+      throw new Error(errorMessage);
+    }
+  }
+
   // Shopping list methods
   async getShoppingList(): Promise<ShoppingListItem[]> {
     await this.ensureAuthenticated();
@@ -330,6 +444,8 @@ export class FirebaseRepository implements IRecipeRepository {
       await set(sharedRecipesRef, {
         recipeId,
         authorId: this.userId,
+        authorName: this.auth.currentUser?.displayName || null,
+        authorEmail: this.auth.currentUser?.email || null,
         recipe: cleanedRecipe,
         createdAt: new Date().toISOString(),
         sharedAt: new Date().toISOString(),
@@ -345,7 +461,13 @@ export class FirebaseRepository implements IRecipeRepository {
 
   async getSharedRecipe(
     shareId: string,
-  ): Promise<(Recipe & { authorId: string }) | null> {
+  ): Promise<
+    (Recipe & {
+      authorId: string;
+      authorName?: string | null;
+      authorEmail?: string | null;
+    }) | null
+  > {
     try {
       const sharedRecipeRef = ref(this.db, `sharedRecipes/${shareId}`);
       const snapshot = await get(sharedRecipeRef);
@@ -359,8 +481,15 @@ export class FirebaseRepository implements IRecipeRepository {
         ...data.recipe,
         id: shareId,
         userId: data.authorId,
+        authorId: data.authorId,
+        authorName: data.authorName || null,
+        authorEmail: data.authorEmail || null,
         createdAt: new Date(data.createdAt),
-      } as Recipe & { authorId: string };
+      } as Recipe & {
+        authorId: string;
+        authorName?: string | null;
+        authorEmail?: string | null;
+      };
     } catch (error) {
       const errorMessage = this.formatError(
         error,

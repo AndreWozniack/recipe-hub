@@ -17,6 +17,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
 import EditRecipe from "./pages/EditRecipe";
+import Landing from "./pages/Landing";
+import { useAuth } from "@/auth/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,20 @@ initializeRepository({
   provider: "firebase",
   firebaseConfig: authConfig.firebaseConfig!,
 });
+
+const HomeRoute = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Index /> : <Landing />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,11 +54,7 @@ const App = () => (
               <Route path="/compartilhar/:shareId" element={<SharedRecipe />} />
               <Route
                 path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
+                element={<HomeRoute />}
               />
               <Route
                 path="/nova-receita"

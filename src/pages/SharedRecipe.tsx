@@ -8,17 +8,29 @@ import {
   Copy,
   Check,
   Loader2,
+  BadgeCheck,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getRepository } from "@/data/repositories";
 import { Recipe } from "@/types/recipe";
 import { useRecipes } from "@/contexts/RecipeContext";
+import {
+  copyShareLinkToClipboard,
+  generateShareQRCode,
+} from "@/lib/recipeSharing";
 
 interface SharedRecipeRepository {
   getSharedRecipe(
     shareId: string,
-  ): Promise<(Recipe & { authorId: string }) | null>;
+  ): Promise<
+    (Recipe & {
+      authorId: string;
+      authorName?: string | null;
+      authorEmail?: string | null;
+    }) | null
+  >;
 }
 
 // Category definitions
@@ -42,12 +54,17 @@ export default function SharedRecipe() {
   const navigate = useNavigate();
   const { addRecipe } = useRecipes();
 
-  const [recipe, setRecipe] = useState<(Recipe & { authorId: string }) | null>(
-    null,
-  );
+  const [recipe, setRecipe] = useState<
+    (Recipe & {
+      authorId: string;
+      authorName?: string | null;
+      authorEmail?: string | null;
+    }) | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
 
   useEffect(() => {
     const loadSharedRecipe = async () => {
@@ -65,6 +82,7 @@ export default function SharedRecipe() {
         }
 
         setRecipe(sharedRecipe);
+        setQrCodeUrl(await generateShareQRCode(window.location.href));
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erro ao carregar receita";
@@ -109,7 +127,7 @@ export default function SharedRecipe() {
   const handleCopyLink = async () => {
     const link = window.location.href;
     try {
-      await navigator.clipboard.writeText(link);
+      await copyShareLinkToClipboard(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast.success("Link copiado!");
@@ -204,6 +222,11 @@ export default function SharedRecipe() {
 
           {/* Title & Description */}
           <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm text-primary">
+              <BadgeCheck className="h-4 w-4" />
+              Compartilhado por{" "}
+              {recipe.authorName || recipe.authorEmail || "um cozinheiro"}
+            </div>
             <h1 className="text-3xl font-bold text-foreground">
               {recipe.title}
             </h1>
@@ -212,6 +235,51 @@ export default function SharedRecipe() {
                 {recipe.description}
               </p>
             )}
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <QrCode className="h-4 w-4 text-primary" />
+                  Link e QR code da receita
+                </div>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                  Compartilhe esta receita por mensagem ou deixe outra pessoa
+                  apontar a câmera para abrir direto.
+                </p>
+                <div className="mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleCopyLink}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copiar link
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {qrCodeUrl ? (
+                <div className="rounded-2xl bg-white p-3 shadow-card">
+                  <img
+                    src={qrCodeUrl}
+                    alt={`QR code de ${recipe.title}`}
+                    className="h-36 w-36"
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {/* Meta Info */}

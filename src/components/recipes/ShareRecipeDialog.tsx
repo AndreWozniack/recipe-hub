@@ -14,12 +14,22 @@ import {
   Check,
   MessageCircle,
   Mail,
-  Loader2,
+  ExternalLink,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Recipe } from "@/types/recipe";
 import { getRepository } from "@/data/repositories";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import {
+  copyShareLinkToClipboard,
+  createShareLink,
+  generateShareQRCode,
+  shareViaEmail,
+  shareViaWhatsApp,
+} from "@/lib/recipeSharing";
+import { useAuth } from "@/auth/AuthContext";
 
 interface ShareRecipeDialogProps {
   recipe: Recipe;
@@ -30,9 +40,11 @@ interface ShareableRepository {
 }
 
 export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shareLink, setShareLink] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
   const handleGenerateLink = async () => {
@@ -40,9 +52,10 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
     try {
       const repository = getRepository() as unknown as ShareableRepository;
       const shareId = await repository.shareRecipe(recipe.id);
-      const baseUrl = window.location.origin;
-      const link = `${baseUrl}/compartilhar/${shareId}`;
+      const link = createShareLink(shareId);
+      const qrCode = await generateShareQRCode(link);
       setShareLink(link);
+      setQrCodeUrl(qrCode);
       toast.success("Link de compartilhamento gerado!");
     } catch (error) {
       const message =
@@ -55,7 +68,7 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shareLink);
+      await copyShareLinkToClipboard(shareLink);
       setCopied(true);
       toast.success("Link copiado!");
       setTimeout(() => setCopied(false), 2000);
@@ -65,18 +78,11 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
   };
 
   const handleShareWhatsApp = () => {
-    const text = `Confira esta receita de *${recipe.title}*: ${shareLink}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, "_blank");
+    shareViaWhatsApp(recipe.title, shareLink);
   };
 
   const handleShareEmail = () => {
-    const subject = `Compartilhei uma receita com você: ${recipe.title}`;
-    const body = `Veja esta receita incrível: ${shareLink}`;
-    const emailUrl = `mailto:?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-    window.open(emailUrl);
+    shareViaEmail(recipe.title, shareLink);
   };
 
   return (
@@ -94,25 +100,54 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
             Compartilhar Receita
           </DialogTitle>
           <DialogDescription>
-            Compartilhe "{recipe.title}" com seus amigos
+            Gere um link limpo, identifique a autoria e compartilhe "{recipe.title}" por link, mensagem ou QR code.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {!shareLink ? (
-            <Button
-              onClick={handleGenerateLink}
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Gerando..." : "Gerar Link de Compartilhamento"}
-            </Button>
+            <>
+              <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                <p className="text-sm font-medium text-foreground">
+                  Compartilhado por
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {user?.displayName || user?.email || "Você"}
+                </p>
+              </div>
+
+              <Button
+                onClick={handleGenerateLink}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Preparando compartilhamento..." : "Gerar link de compartilhamento"}
+              </Button>
+            </>
           ) : (
             <>
-              <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3">
-                <p className="break-all text-sm text-muted-foreground">
-                  {shareLink}
-                </p>
+              <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Link compartilhável
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Compartilhado por {user?.displayName || user?.email || "você"}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => window.open(shareLink, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="mt-3">
+                  <Input value={shareLink} readOnly className="text-sm" />
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -133,9 +168,35 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
                     </>
                   )}
                 </Button>
+                <Button
+                  onClick={handleGenerateLink}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Novo link
+                </Button>
               </div>
 
               <Separator />
+
+              <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <QrCode className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-medium text-foreground">
+                    QR code da receita
+                  </p>
+                </div>
+                <div className="flex justify-center rounded-2xl bg-white p-4">
+                  {qrCodeUrl ? (
+                    <img
+                      src={qrCodeUrl}
+                      alt={`QR code para compartilhar ${recipe.title}`}
+                      className="h-52 w-52"
+                    />
+                  ) : null}
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">
