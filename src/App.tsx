@@ -16,6 +16,7 @@ import SharedRecipe from "./pages/SharedRecipe";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
+import EditRecipe from "./pages/EditRecipe";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <RecipeDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/receita/:id/editar"
+                element={
+                  <ProtectedRoute>
+                    <EditRecipe />
                   </ProtectedRoute>
                 }
               />

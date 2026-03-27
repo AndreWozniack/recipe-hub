@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ChefHat, Plus, ShoppingCart, LogOut, User } from "lucide-react";
+import { ChefHat, Plus, ShoppingCart, LogOut, User, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecipes } from "@/contexts/RecipeContext";
 import { useAuth } from "@/auth/AuthContext";
@@ -48,6 +48,17 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Link to="/">
+            <Button
+              variant={location.pathname === "/" ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Receitas</span>
+            </Button>
+          </Link>
+
           <Link to="/nova-receita">
             <Button
               variant={

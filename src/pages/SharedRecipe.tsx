@@ -134,7 +134,7 @@ export default function SharedRecipe() {
     );
   }
 
-  const categoryLabels = recipe.categories
+  const categoryLabels = (recipe.categories ?? [])
     .map((catId) => CATEGORIES.find((c) => c.id === catId))
     .filter(Boolean);
 
@@ -241,7 +241,7 @@ export default function SharedRecipe() {
               Ingredientes
             </h2>
             <ul className="space-y-2">
-              {recipe.ingredients.map((ing) => (
+              {(recipe.ingredients ?? []).map((ing) => (
                 <li
                   key={ing.id}
                   className="flex items-center gap-2 text-foreground"

@@ -10,7 +10,7 @@ import { useRecipes } from "@/contexts/RecipeContext";
 import { Category } from "@/types/recipe";
 
 const Index = () => {
-  const { recipes } = useRecipes();
+  const { recipes, loading, error } = useRecipes();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -26,7 +26,7 @@ const Index = () => {
       // Category filter
       const matchesCategory =
         selectedCategories.length === 0 ||
-        recipe.categories.some((cat) => selectedCategories.includes(cat));
+        (recipe.categories ?? []).some((cat) => selectedCategories.includes(cat));
 
       // Favorites filter
       const matchesFavorites = !showFavorites || recipe.isFavorite;
@@ -117,13 +117,34 @@ const Index = () => {
 
         {/* Recipes Grid */}
         <section>
-          {filteredRecipes.length > 0 ? (
+          {loading && (
+            <div className="flex min-h-[30vh] items-center justify-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+            </div>
+          )}
+
+          {!loading && error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-center"
+            >
+              <h3 className="font-display text-xl font-semibold text-foreground">
+                Falha ao carregar receitas
+              </h3>
+              <p className="mt-2 text-muted-foreground">{error.message}</p>
+            </motion.div>
+          )}
+
+          {!loading && !error && filteredRecipes.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredRecipes.map((recipe, index) => (
                 <RecipeCard key={recipe.id} recipe={recipe} index={index} />
               ))}
             </div>
-          ) : (
+          ) : null}
+
+          {!loading && !error && filteredRecipes.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -139,7 +160,7 @@ const Index = () => {
                 Tente ajustar os filtros ou adicione uma nova receita.
               </p>
             </motion.div>
-          )}
+          ) : null}
         </section>
       </main>
     </div>

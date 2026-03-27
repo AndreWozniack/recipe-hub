@@ -2,7 +2,7 @@
 import { Recipe } from "@/types/recipe";
 
 export function exportRecipeToPDF(recipe: Recipe) {
-  const categoryLabels = recipe.categories
+  const categoryLabels = (recipe.categories ?? [])
     .map((catId) => {
       const categories = [
         { id: "breakfast", label: "Café da Manhã", icon: "🌅" },
@@ -137,7 +137,7 @@ export function exportRecipeToPDF(recipe: Recipe) {
 
         <h2>📋 Ingredientes</h2>
         <ul class="ingredients-list">
-          ${recipe.ingredients
+          ${(recipe.ingredients ?? [])
             .map(
               (ing) =>
                 `<li><span class="ingredient-name">${ing.name}</span> ${

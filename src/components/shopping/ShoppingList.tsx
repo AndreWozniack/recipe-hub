@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,14 +18,47 @@ import { toast } from "sonner";
 export function ShoppingList() {
   const navigate = useNavigate();
   const {
+    loading,
+    error,
     shoppingList,
     removeFromShoppingList,
     clearShoppingList,
     getShoppingListIngredients,
   } = useRecipes();
 
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-  const ingredients = getShoppingListIngredients();
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => {
+    const storedItems = localStorage.getItem("shopping-list-checked-items");
+    if (!storedItems) {
+      return new Set();
+    }
+
+    try {
+      return new Set(JSON.parse(storedItems) as string[]);
+    } catch {
+      return new Set();
+    }
+  });
+  const ingredients = useMemo(
+    () => getShoppingListIngredients(),
+    [getShoppingListIngredients],
+  );
+
+  useEffect(() => {
+    localStorage.setItem(
+      "shopping-list-checked-items",
+      JSON.stringify(Array.from(checkedItems)),
+    );
+  }, [checkedItems]);
+
+  useEffect(() => {
+    const validIds = new Set(ingredients.map((ingredient) => ingredient.id));
+    setCheckedItems((current) => {
+      const next = new Set(
+        Array.from(current).filter((itemId) => validIds.has(itemId)),
+      );
+      return next.size === current.size ? current : next;
+    });
+  }, [ingredients]);
 
   const handleToggleItem = (id: string) => {
     setCheckedItems((prev) => {
@@ -39,22 +72,44 @@ export function ShoppingList() {
     });
   };
 
-  const handleCopyList = () => {
+  const handleCopyList = async () => {
     const listText = ingredients
-      .map((ing) => `☐ ${ing.quantity} ${ing.unit} - ${ing.name}`)
+      .map((ing) =>
+        [ing.quantity, ing.unit, ing.name].filter(Boolean).join(" ").trim(),
+      )
+      .map((line) => `- ${line}`)
       .join("\n");
 
-    navigator.clipboard.writeText(listText);
+    await navigator.clipboard.writeText(listText);
     toast.success("Lista copiada para a área de transferência!");
   };
 
-  const handleClearList = () => {
+  const handleClearList = async () => {
     if (confirm("Tem certeza que deseja limpar toda a lista de compras?")) {
-      clearShoppingList();
+      await clearShoppingList();
       setCheckedItems(new Set());
       toast.success("Lista de compras limpa!");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-center">
+        <h2 className="font-display text-2xl font-semibold text-foreground">
+          Falha ao carregar a lista
+        </h2>
+        <p className="mt-2 text-muted-foreground">{error.message}</p>
+      </div>
+    );
+  }
 
   if (shoppingList.length === 0) {
     return (
@@ -121,7 +176,7 @@ export function ShoppingList() {
               >
                 <span>{item.recipeName}</span>
                 <button
-                  onClick={() => removeFromShoppingList(item.recipeId)}
+                  onClick={() => void removeFromShoppingList(item.recipeId)}
                   className="rounded-full p-0.5 hover:bg-muted"
                 >
                   <X className="h-3.5 w-3.5" />
