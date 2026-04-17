@@ -1,25 +1,10 @@
-import { Recipe } from "@/types/recipe";
+import { CookMode, CookModeStep, Recipe } from "@/types/recipe";
 
 declare const __COOK_MODE_API_ENDPOINT__: string;
 
-export interface StructuredCookStep {
-  id: string;
-  title: string;
-  instruction: string;
-  estimatedMinutes?: number;
-  ingredients: string[];
-  tips: string[];
-}
-
-export interface StructuredCookMode {
-  summary: string;
-  estimatedTotalMinutes?: number;
-  steps: StructuredCookStep[];
-}
-
 export async function generateStructuredCookMode(
   recipe: Recipe,
-): Promise<StructuredCookMode> {
+): Promise<CookMode> {
   const response = await fetch(__COOK_MODE_API_ENDPOINT__, {
     method: "POST",
     headers: {
@@ -48,12 +33,12 @@ export async function generateStructuredCookMode(
     );
   }
 
-  const parsed = (await response.json()) as StructuredCookMode;
+  const parsed = (await response.json()) as CookMode;
 
   return {
     summary: parsed.summary,
     estimatedTotalMinutes: parsed.estimatedTotalMinutes,
-    steps: (parsed.steps || []).map((step, index) => ({
+    steps: (parsed.steps || []).map((step: CookModeStep, index) => ({
       id: step.id || `step-${index + 1}`,
       title: step.title,
       instruction: step.instruction,

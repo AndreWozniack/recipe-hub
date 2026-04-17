@@ -190,6 +190,8 @@ export function RecipeForm({
         difficulty: difficulty || undefined,
         isFavorite,
       });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar receita. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }

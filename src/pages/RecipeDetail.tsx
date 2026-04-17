@@ -83,15 +83,23 @@ export default function RecipeDetail() {
 
   const handleDelete = async () => {
     if (confirm(`Tem certeza que deseja excluir "${recipe.title}"?`)) {
-      await deleteRecipe(recipe.id);
-      toast.success("Receita excluída com sucesso!");
-      navigate("/");
+      try {
+        await deleteRecipe(recipe.id);
+        toast.success("Receita excluída com sucesso!");
+        navigate("/");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Erro ao excluir receita");
+      }
     }
   };
 
   const handleAddToList = async () => {
-    await addToShoppingList(recipe.id, recipe.title);
-    toast.success(`${recipe.title} adicionada à lista de compras!`);
+    try {
+      await addToShoppingList(recipe.id, recipe.title);
+      toast.success(`${recipe.title} adicionada à lista de compras!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao adicionar à lista de compras");
+    }
   };
 
   return (

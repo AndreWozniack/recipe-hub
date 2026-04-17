@@ -8,6 +8,7 @@ import { AuthProvider } from "@/auth/AuthContext";
 import { authConfig } from "@/auth/authConfig";
 import { initializeRepository } from "@/data/repositories";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import NewRecipe from "./pages/NewRecipe";
 import ShoppingListPage from "./pages/ShoppingListPage";
@@ -43,14 +44,15 @@ const HomeRoute = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider config={authConfig}>
-        <RecipeProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider config={authConfig}>
+          <RecipeProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/compartilhar/:shareId" element={<SharedRecipe />} />
               <Route
@@ -105,14 +107,15 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </RecipeProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </RecipeProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -439,6 +439,7 @@ export class FirebaseRepository implements IRecipeRepository {
         prepTime: recipe.prepTime,
         servings: recipe.servings,
         difficulty: recipe.difficulty,
+        cookMode: recipe.cookMode || null,
       });
 
       await set(sharedRecipesRef, {
