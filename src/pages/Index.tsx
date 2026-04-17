@@ -9,20 +9,26 @@ import {
   Grip,
   Trash2,
   Inbox,
+  SlidersHorizontal,
+  Wand2,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { CategoryFilter } from "@/components/recipes/CategoryFilter";
 import { RecipeCard } from "@/components/recipes/RecipeCard";
 import { ImportSharedRecipeDialog } from "@/components/recipes/ImportSharedRecipeDialog";
+import { ImportRecipeDialog } from "@/components/recipes/ImportRecipeDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useRecipes } from "@/contexts/RecipeContext";
 import { Category } from "@/types/recipe";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type FolderFilter = "all" | "unfiled" | string;
 
 const Index = () => {
+  const navigate = useNavigate();
   const {
     recipes,
     folders,
@@ -38,6 +44,7 @@ const Index = () => {
   const [selectedFolder, setSelectedFolder] = useState<FolderFilter>("all");
   const [newFolderName, setNewFolderName] = useState("");
   const [dropTarget, setDropTarget] = useState<FolderFilter | null>(null);
+  const [folderSheetOpen, setFolderSheetOpen] = useState(false);
 
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
@@ -155,11 +162,12 @@ const Index = () => {
         </motion.section>
 
         <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+          {/* Sidebar — desktop */}
           <motion.aside
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.08 }}
-            className="h-fit rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-card"
+            className="hidden h-fit rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-card lg:block"
           >
             <div className="flex items-center gap-2">
               <Grip className="h-4 w-4 text-primary" />
@@ -289,6 +297,99 @@ const Index = () => {
             </div>
           </motion.aside>
 
+          {/* Sidebar — mobile Sheet */}
+          <Sheet open={folderSheetOpen} onOpenChange={setFolderSheetOpen}>
+            <SheetContent side="left" className="w-80 overflow-y-auto p-0">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Grip className="h-4 w-4 text-primary" />
+                  Pastas
+                </SheetTitle>
+              </SheetHeader>
+              <div className="px-6 pb-6">
+                <p className="mb-4 text-sm leading-6 text-muted-foreground">
+                  Organize suas receitas em pastas.
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { id: "all", label: "Todas as receitas", icon: FolderOpen, count: recipes.length },
+                    { id: "unfiled", label: "Sem pasta", icon: Inbox, count: folderCounts.get("unfiled") || 0 },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => { setSelectedFolder(item.id); setFolderSheetOpen(false); }}
+                        className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
+                          selectedFolder === item.id
+                            ? "border-primary/30 bg-primary/10"
+                            : "border-transparent bg-secondary/50 hover:bg-secondary"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </span>
+                        <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                          {item.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {folders.map((folder) => (
+                    <div
+                      key={folder.id}
+                      className={`rounded-2xl border transition-all ${
+                        selectedFolder === folder.id
+                          ? "border-primary/30 bg-primary/10"
+                          : "border-transparent bg-secondary/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 px-4 py-3">
+                        <button
+                          onClick={() => { setSelectedFolder(folder.id); setFolderSheetOpen(false); }}
+                          className="flex flex-1 items-center justify-between text-left"
+                        >
+                          <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <FolderOpen className="h-4 w-4" />
+                            {folder.name}
+                          </span>
+                          <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                            {folderCounts.get(folder.id) || 0}
+                          </span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Excluir a pasta "${folder.name}"?`)) {
+                              await deleteFolder(folder.id);
+                              if (selectedFolder === folder.id) setSelectedFolder("all");
+                              toast.success("Pasta removida.");
+                            }
+                          }}
+                          className="rounded-full p-1 text-muted-foreground transition hover:bg-background hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 space-y-3 rounded-2xl border border-border/70 bg-background/80 p-4">
+                  <label className="text-sm font-medium text-foreground">Nova pasta</label>
+                  <Input
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="Ex: Receitas da família"
+                  />
+                  <Button className="w-full gap-2" onClick={handleCreateFolder}>
+                    <FolderPlus className="h-4 w-4" />
+                    Criar pasta
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <section>
             <motion.section
               initial={{ opacity: 0, y: 10 }}
@@ -296,7 +397,18 @@ const Index = () => {
               transition={{ delay: 0.1 }}
               className="mb-8 space-y-4"
             >
-              <div className="flex flex-col gap-4 sm:flex-row">
+              {/* Barra de busca + ações */}
+              <div className="flex gap-2">
+                {/* Botão de pastas — mobile only */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 lg:hidden"
+                  onClick={() => setFolderSheetOpen(true)}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -307,20 +419,28 @@ const Index = () => {
                     className="pl-10"
                   />
                 </div>
-                <ImportSharedRecipeDialog />
+
+                {/* Favoritas */}
                 <button
                   onClick={() => setShowFavorites(!showFavorites)}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                     showFavorites
                       ? "bg-destructive/10 text-destructive"
                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   }`}
                 >
-                  <Heart
-                    className={`h-4 w-4 ${showFavorites ? "fill-current" : ""}`}
-                  />
-                  Favoritas
+                  <Heart className={`h-4 w-4 ${showFavorites ? "fill-current" : ""}`} />
+                  <span className="hidden sm:inline">Favoritas</span>
                 </button>
+
+                {/* Import IA */}
+                <ImportRecipeDialog
+                  onRecipeImported={(recipe) =>
+                    navigate("/nova-receita", { state: { importedRecipe: recipe } })
+                  }
+                />
+
+                <ImportSharedRecipeDialog />
               </div>
 
               <CategoryFilter

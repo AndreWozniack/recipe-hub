@@ -90,6 +90,43 @@ async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
+export async function parseRecipeFromUrl(url: string): Promise<AIRecipeResponse> {
+  const urlEndpoint = __API_ENDPOINT__.replace("/parseRecipe", "/parseRecipeFromUrl");
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(urlEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({ url }),
+    });
+
+    window.clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response);
+      throw new Error(errorMessage);
+    }
+
+    return normalizeAIResponse((await response.json()) as AIRecipeResponse);
+  } catch (error) {
+    window.clearTimeout(timeoutId);
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        throw new Error("A IA demorou demais para responder. Tente novamente.");
+      }
+      if (error.message.includes("Failed to fetch")) {
+        throw new Error("Não foi possível conectar ao serviço. Verifique sua conexão.");
+      }
+      throw error;
+    }
+    throw new Error("Erro desconhecido ao processar URL");
+  }
+}
+
 export function normalizeAIResponse(
   response: AIRecipeResponse,
 ): AIRecipeResponse {

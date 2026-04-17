@@ -12,10 +12,12 @@ import {
   Users,
   Lightbulb,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useRecipes } from "@/contexts/RecipeContext";
 import { CookModeStep, DIFFICULTY_LABELS } from "@/types/recipe";
 import {
@@ -38,6 +40,7 @@ export default function CookRecipe() {
   const [cookSummary, setCookSummary] = useState("");
   const [cookModeLoading, setCookModeLoading] = useState(true);
   const [usingFallbackSteps, setUsingFallbackSteps] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const baseServings = recipe ? getRecipeServings(recipe) : 1;
   const parsedTargetServings =
@@ -154,11 +157,90 @@ export default function CookRecipe() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto max-w-6xl px-4 py-8">
+        {/* Sidebar — mobile Sheet */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="w-80 overflow-y-auto p-0">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <ChefHat className="h-4 w-4 text-primary" />
+                {recipe.title}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="px-6 pb-6">
+              <Button
+                variant="ghost"
+                className="mb-4 w-fit gap-2 px-0"
+                onClick={() => { navigate(`/receita/${recipe.id}`); setSidebarOpen(false); }}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar para receita
+              </Button>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {recipe.prepTime && (
+                  <div className="rounded-2xl bg-secondary/60 p-3">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                      <Clock3 className="h-3.5 w-3.5 text-primary" />
+                      Tempo
+                    </div>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{recipe.prepTime} min</p>
+                  </div>
+                )}
+                <div className="rounded-2xl bg-secondary/60 p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    Porções
+                  </div>
+                  <p className="mt-1.5 text-sm text-muted-foreground">Base: {baseServings}</p>
+                </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-border/70 bg-background/70 p-3">
+                <label className="text-sm font-medium text-foreground">Ajustar porções</label>
+                <div className="mt-2 flex gap-2">
+                  {[baseServings, baseServings * 2, Math.max(1, Math.round(baseServings / 2))].map((s) => (
+                    <Button
+                      key={s}
+                      variant={effectiveServings === s ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTargetServings(s)}
+                    >
+                      {s}
+                    </Button>
+                  ))}
+                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  value={targetServings}
+                  onChange={(e) => setTargetServings(e.target.value)}
+                  placeholder={`Ex: ${baseServings}`}
+                  className="mt-2"
+                />
+              </div>
+              <div className="mt-4 rounded-2xl border border-border/70 bg-background/70 p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">Ingredientes</p>
+                  <span className="text-xs text-muted-foreground">{effectiveServings} porções</span>
+                </div>
+                <ul className="mt-3 space-y-2 text-sm text-foreground">
+                  {adjustedIngredients.map((ingredient) => (
+                    <li key={ingredient.id} className="rounded-xl bg-secondary/40 p-2.5">
+                      <span className="font-medium">
+                        {[ingredient.quantity, ingredient.unit].filter(Boolean).join(" ")}
+                      </span>{" "}
+                      {ingredient.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
           <motion.aside
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
-            className="h-fit rounded-[30px] border border-border/70 bg-card/90 p-6 shadow-card"
+            className="hidden h-fit rounded-[30px] border border-border/70 bg-card/90 p-6 shadow-card lg:block"
           >
             <Button
               variant="ghost"
@@ -277,6 +359,18 @@ export default function CookRecipe() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
+            {/* Botão para abrir sidebar no mobile */}
+            <div className="flex items-center gap-3 lg:hidden">
+              <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate(`/receita/${recipe.id}`)}>
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2 ml-auto" onClick={() => setSidebarOpen(true)}>
+                <BookOpen className="h-4 w-4" />
+                Ver receita
+              </Button>
+            </div>
+
             <div className="rounded-[30px] border border-border/70 bg-card/95 p-6 shadow-card">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>

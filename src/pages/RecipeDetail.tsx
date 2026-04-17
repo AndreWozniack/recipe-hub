@@ -13,8 +13,17 @@ import {
   Trash2,
   Download,
   PlayCircle,
+  MoreVertical,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ShareRecipeDialog } from "@/components/recipes/ShareRecipeDialog";
 import { useRecipes } from "@/contexts/RecipeContext";
 import { CATEGORIES, DIFFICULTY_LABELS } from "@/types/recipe";
@@ -112,37 +121,74 @@ export default function RecipeDetail() {
           transition={{ duration: 0.4 }}
           className="space-y-6"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button variant="ghost" className="w-fit gap-2" onClick={() => navigate("/")}>
+          <div className="flex items-center justify-between gap-3">
+            <Button variant="ghost" className="gap-2" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
-              Voltar para receitas
+              <span className="hidden sm:inline">Voltar para receitas</span>
             </Button>
-            <div className="flex flex-wrap gap-2">
+
+            <div className="flex items-center gap-2">
+              {/* Ação principal — sempre visível */}
               <Button
                 size="sm"
                 className="gap-2"
                 onClick={() => navigate(`/receita/${recipe.id}/fazer`)}
               >
                 <PlayCircle className="h-4 w-4" />
-                Fazer receita
+                <span>Fazer receita</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                <Download className="mr-2 h-4 w-4" />
-                Exportar PDF
-              </Button>
-              <ShareRecipeDialog recipe={recipe} />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/receita/${recipe.id}/editar`)}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-              <Button variant="destructive" size="sm" onClick={handleDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
-              </Button>
+
+              {/* Ações secundárias — desktop */}
+              <div className="hidden items-center gap-2 sm:flex">
+                <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+                <ShareRecipeDialog recipe={recipe} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/receita/${recipe.id}/editar`)}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </Button>
+              </div>
+
+              {/* Ações secundárias — mobile dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="sm:hidden">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate(`/receita/${recipe.id}/editar`)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Exportar PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleAddToList}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    {isInShoppingList ? "Na lista de compras" : "Adicionar à lista"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir receita
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
