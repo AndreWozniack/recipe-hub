@@ -22,6 +22,7 @@ export const normalizeRecipe = (recipe: Recipe): Recipe => ({
   categories: Array.isArray(recipe.categories) ? recipe.categories : [],
   ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
   instructions: recipe.instructions || "",
+  steps: Array.isArray(recipe.steps) ? recipe.steps.filter((s) => s?.trim()) : undefined,
   isFavorite: Boolean(recipe.isFavorite),
   cookMode:
     recipe.cookMode &&

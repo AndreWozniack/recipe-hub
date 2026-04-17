@@ -15,7 +15,9 @@ export async function generateStructuredCookMode(
         title: recipe.title,
         description: recipe.description,
         ingredients: recipe.ingredients,
-        instructions: recipe.instructions,
+        instructions: recipe.steps?.length
+          ? recipe.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")
+          : recipe.instructions,
         prepTime: recipe.prepTime,
         servings: recipe.servings,
         difficulty: recipe.difficulty,

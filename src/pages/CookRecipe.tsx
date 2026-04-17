@@ -91,16 +91,23 @@ export default function CookRecipe() {
         if (cancelled) {
           return;
         }
-        const fallbackSteps = parseInstructionSteps(recipe.instructions).map(
-          (step) => ({
-            id: step.id,
-            title: step.title || step.text,
-            instruction: step.instruction || step.text,
-            estimatedMinutes: step.estimatedMinutes,
-            ingredients: step.ingredients || [],
-            tips: step.tips || [],
-          }),
-        );
+        const fallbackSteps = recipe.steps?.length
+          ? recipe.steps.map((s, i) => ({
+              id: `step-${i + 1}`,
+              title: `Passo ${i + 1}`,
+              instruction: s,
+              estimatedMinutes: undefined,
+              ingredients: [],
+              tips: [],
+            }))
+          : parseInstructionSteps(recipe.instructions).map((step) => ({
+              id: step.id,
+              title: step.title || step.text,
+              instruction: step.instruction || step.text,
+              estimatedMinutes: step.estimatedMinutes,
+              ingredients: step.ingredients || [],
+              tips: step.tips || [],
+            }));
         setSteps(fallbackSteps);
         setCookSummary(
           "Modo de preparo gerado localmente a partir das instruções da receita.",

@@ -321,9 +321,22 @@ export default function RecipeDetail() {
               <h2 className="mb-4 font-display text-xl font-semibold text-foreground">
                 Modo de Preparo
               </h2>
-              <div className="whitespace-pre-line leading-relaxed text-foreground">
-                {recipe.instructions}
-              </div>
+              {recipe.steps?.length ? (
+                <ol className="space-y-4">
+                  {recipe.steps.map((step, index) => (
+                    <li key={index} className="flex gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
+                        {index + 1}
+                      </span>
+                      <p className="leading-relaxed text-foreground pt-0.5">{step}</p>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="whitespace-pre-line leading-relaxed text-foreground">
+                  {recipe.instructions}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

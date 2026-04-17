@@ -9,7 +9,7 @@ export interface AIRecipeResponse {
   title: string;
   description?: string;
   ingredients: Ingredient[];
-  instructions: string;
+  steps: string[];
   prepTime?: number;
   servings?: number;
   difficulty?: Difficulty;
@@ -127,6 +127,44 @@ export async function parseRecipeFromUrl(url: string): Promise<AIRecipeResponse>
   }
 }
 
+export async function convertTextToSteps(text: string): Promise<string[]> {
+  const endpoint = __API_ENDPOINT__.replace("/parseRecipe", "/convertToSteps");
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({ text }),
+    });
+
+    window.clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorMessage = await extractErrorMessage(response);
+      throw new Error(errorMessage);
+    }
+
+    const data = (await response.json()) as { steps: string[] };
+    return Array.isArray(data.steps) ? data.steps.filter((s) => s?.trim()) : [];
+  } catch (error) {
+    window.clearTimeout(timeoutId);
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        throw new Error("A IA demorou demais para responder. Tente novamente.");
+      }
+      if (error.message.includes("Failed to fetch")) {
+        throw new Error("Não foi possível conectar ao serviço. Verifique sua conexão.");
+      }
+      throw error;
+    }
+    throw new Error("Erro desconhecido ao converter texto");
+  }
+}
+
 export function normalizeAIResponse(
   response: AIRecipeResponse,
 ): AIRecipeResponse {
@@ -178,7 +216,7 @@ export function normalizeAIResponse(
     title: response.title || "Receita sem título",
     description: response.description,
     ingredients,
-    instructions: response.instructions || "",
+    steps: Array.isArray(response.steps) ? response.steps.filter((s) => s?.trim()) : [],
     prepTime: response.prepTime,
     servings: response.servings,
     difficulty,

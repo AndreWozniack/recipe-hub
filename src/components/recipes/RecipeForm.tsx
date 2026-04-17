@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Trash2, ArrowLeft, Sparkles, Save } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Sparkles, Save, Loader2, GripVertical, AlignLeft, ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,7 @@ import {
   Recipe,
   DIFFICULTY_LABELS,
 } from "@/types/recipe";
+import { convertTextToSteps } from "@/lib/recipeAI";
 import { toast } from "sonner";
 
 type RecipeDraft = Omit<Recipe, "id" | "createdAt">;
@@ -32,6 +33,7 @@ interface ImportedRecipe {
   description?: string;
   categories?: Category[];
   ingredients?: Ingredient[];
+  steps?: string[];
   instructions?: string;
   prepTime?: number | string;
   servings?: number | string;
@@ -53,6 +55,18 @@ const emptyIngredient = (): Ingredient => ({
   unit: "",
 });
 
+function splitInstructionsToSteps(instructions: string): string[] {
+  const lines = instructions.split("\n").map((l) => l.trim()).filter(Boolean);
+  const numbered = lines.filter((l) => /^\d+[.)]\s/.test(l));
+  if (numbered.length >= 2) {
+    return numbered.map((l) => l.replace(/^\d+[.)]\s+/, ""));
+  }
+  if (lines.length >= 2) return lines;
+  // Split by sentence boundary as last resort
+  const sentences = instructions.split(/(?<=[.!?])\s+(?=[A-ZÀ-Ú])/);
+  return sentences.map((s) => s.trim()).filter(Boolean);
+}
+
 export function RecipeForm({
   mode = "create",
   initialRecipe,
@@ -65,7 +79,10 @@ export function RecipeForm({
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([emptyIngredient()]);
-  const [instructions, setInstructions] = useState("");
+  const [steps, setSteps] = useState<string[]>([""]);
+  const [textMode, setTextMode] = useState(false);
+  const [rawText, setRawText] = useState("");
+  const [convertingToSteps, setConvertingToSteps] = useState(false);
   const [prepTime, setPrepTime] = useState("");
   const [servings, setServings] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty | "">("");
@@ -76,7 +93,6 @@ export function RecipeForm({
     setTitle(initialRecipe?.title || "");
     setDescription(initialRecipe?.description || "");
     setCategories(initialRecipe?.categories || []);
-    setInstructions(initialRecipe?.instructions || "");
     setPrepTime(initialRecipe?.prepTime?.toString() || "");
     setServings(initialRecipe?.servings?.toString() || "");
     setDifficulty(initialRecipe?.difficulty || "");
@@ -89,6 +105,14 @@ export function RecipeForm({
           }))
         : [emptyIngredient()],
     );
+
+    if (initialRecipe?.steps?.length) {
+      setSteps(initialRecipe.steps);
+    } else if (initialRecipe?.instructions) {
+      setSteps(splitInstructionsToSteps(initialRecipe.instructions));
+    } else {
+      setSteps([""]);
+    }
   }, [initialRecipe]);
 
   const handleToggleCategory = (category: Category) => {
@@ -103,10 +127,15 @@ export function RecipeForm({
     setTitle(importedRecipe.title || "");
     setDescription(importedRecipe.description || "");
     setCategories(importedRecipe.categories || []);
-    setInstructions(importedRecipe.instructions || "");
     setPrepTime(importedRecipe.prepTime?.toString() || "");
     setServings(importedRecipe.servings?.toString() || "");
     setDifficulty(importedRecipe.difficulty || "");
+
+    if (importedRecipe.steps?.length) {
+      setSteps(importedRecipe.steps);
+    } else if (importedRecipe.instructions) {
+      setSteps(splitInstructionsToSteps(importedRecipe.instructions));
+    }
 
     if (importedRecipe.ingredients?.length) {
       setIngredients(
@@ -140,12 +169,62 @@ export function RecipeForm({
     );
   };
 
+  const handleAddStep = () => {
+    setSteps((prev) => [...prev, ""]);
+  };
+
+  const handleRemoveStep = (index: number) => {
+    if (steps.length > 1) {
+      setSteps((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleStepChange = (index: number, value: string) => {
+    setSteps((prev) => prev.map((s, i) => (i === index ? value : s)));
+  };
+
+  const handleSwitchToTextMode = () => {
+    const filled = steps.filter((s) => s.trim());
+    if (filled.length > 0) {
+      setRawText(filled.map((s, i) => `${i + 1}. ${s}`).join("\n"));
+    }
+    setTextMode(true);
+  };
+
+  const handleSwitchToStepsMode = () => {
+    if (rawText.trim() && steps.every((s) => !s.trim())) {
+      setSteps(splitInstructionsToSteps(rawText));
+    }
+    setTextMode(false);
+  };
+
+  const handleConvertToSteps = async () => {
+    if (!rawText.trim()) {
+      toast.error("Digite o modo de preparo antes de converter.");
+      return;
+    }
+    setConvertingToSteps(true);
+    try {
+      const converted = await convertTextToSteps(rawText);
+      if (converted.length === 0) {
+        toast.error("A IA não conseguiu identificar os passos. Tente novamente.");
+        return;
+      }
+      setSteps(converted);
+      setTextMode(false);
+      toast.success(`${converted.length} passos identificados!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao converter. Tente novamente.");
+    } finally {
+      setConvertingToSteps(false);
+    }
+  };
+
   const handleCancel = () => {
     if (onCancel) {
       onCancel();
       return;
     }
-
     navigate(-1);
   };
 
@@ -171,7 +250,8 @@ export function RecipeForm({
       return;
     }
 
-    if (!instructions.trim()) {
+    const validSteps = steps.map((s) => s.trim()).filter(Boolean);
+    if (validSteps.length === 0) {
       toast.error("Por favor, adicione o modo de preparo.");
       return;
     }
@@ -184,7 +264,8 @@ export function RecipeForm({
         description: description.trim() || undefined,
         categories,
         ingredients: validIngredients,
-        instructions: instructions.trim(),
+        steps: validSteps,
+        instructions: validSteps.join("\n"),
         prepTime: prepTime ? Number.parseInt(prepTime, 10) : undefined,
         servings: servings ? Number.parseInt(servings, 10) : undefined,
         difficulty: difficulty || undefined,
@@ -334,15 +415,97 @@ export function RecipeForm({
         </div>
       </div>
 
+      {/* Instructions / Steps section */}
       <div className="space-y-4 rounded-2xl bg-card p-6 shadow-card">
-        <Label htmlFor="instructions">Modo de Preparo *</Label>
-        <Textarea
-          id="instructions"
-          placeholder="Descreva o passo a passo da receita..."
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          rows={8}
-        />
+        <div className="flex items-center justify-between">
+          <Label>Modo de Preparo *</Label>
+          <button
+            type="button"
+            onClick={textMode ? handleSwitchToStepsMode : handleSwitchToTextMode}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {textMode ? (
+              <>
+                <ListOrdered className="h-3.5 w-3.5" />
+                Modo por passos
+              </>
+            ) : (
+              <>
+                <AlignLeft className="h-3.5 w-3.5" />
+                Escrever como texto
+              </>
+            )}
+          </button>
+        </div>
+
+        {textMode ? (
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Descreva o modo de preparo em texto livre..."
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              rows={8}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleConvertToSteps}
+              disabled={convertingToSteps || !rawText.trim()}
+              className="gap-2"
+            >
+              {convertingToSteps ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {convertingToSteps ? "Convertendo..." : "Converter em passos com IA"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {steps.map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.03 }}
+                className="flex gap-2 items-start"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold mt-1">
+                  {index + 1}
+                </div>
+                <Textarea
+                  placeholder={`Passo ${index + 1}...`}
+                  value={step}
+                  onChange={(e) => handleStepChange(index, e.target.value)}
+                  rows={2}
+                  className="flex-1 resize-none"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveStep(index)}
+                  disabled={steps.length === 1}
+                  className="mt-1 shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </motion.div>
+            ))}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleAddStep}
+              className="gap-1"
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar passo
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 rounded-2xl bg-card p-6 shadow-card sm:grid-cols-3">

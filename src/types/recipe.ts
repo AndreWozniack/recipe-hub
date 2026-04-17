@@ -42,6 +42,7 @@ export interface Recipe {
   categories: Category[];
   ingredients: Ingredient[];
   instructions: string;
+  steps?: string[];
   prepTime?: number;
   servings?: number;
   difficulty?: Difficulty;
