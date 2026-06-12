@@ -108,4 +108,8 @@ export class CustomAuthProvider implements IAuthProvider {
     localStorage.removeItem("auth_token");
     this.saveUser(null);
   }
+
+  async getIdToken(): Promise<string | null> {
+    return localStorage.getItem("auth_token");
+  }
 }

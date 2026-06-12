@@ -76,4 +76,9 @@ export class FirebaseAuthProvider implements IAuthProvider {
   async signOut(): Promise<void> {
     await firebaseSignOut(this.auth);
   }
+
+  async getIdToken(): Promise<string | null> {
+    const user = this.auth.currentUser;
+    return user ? user.getIdToken() : null;
+  }
 }

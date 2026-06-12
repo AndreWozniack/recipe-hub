@@ -32,6 +32,9 @@ export interface IAuthProvider {
 
   // Sign out
   signOut(): Promise<void>;
+
+  // Get current user's ID token for backend authorization (null if signed out)
+  getIdToken(): Promise<string | null>;
 }
 
 // Provider types
