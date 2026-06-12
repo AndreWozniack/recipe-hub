@@ -24,6 +24,7 @@ import {
   DIFFICULTY_LABELS,
 } from "@/types/recipe";
 import { convertTextToSteps } from "@/lib/recipeAI";
+import { useAuth } from "@/auth/AuthContext";
 import { toast } from "sonner";
 
 type RecipeDraft = Omit<Recipe, "id" | "createdAt">;
@@ -75,6 +76,7 @@ export function RecipeForm({
   submittingLabel,
 }: RecipeFormProps) {
   const navigate = useNavigate();
+  const { getIdToken } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -205,7 +207,8 @@ export function RecipeForm({
     }
     setConvertingToSteps(true);
     try {
-      const converted = await convertTextToSteps(rawText);
+      const authToken = (await getIdToken()) ?? undefined;
+      const converted = await convertTextToSteps(rawText, authToken);
       if (converted.length === 0) {
         toast.error("A IA não conseguiu identificar os passos. Tente novamente.");
         return;

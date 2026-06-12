@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { parseRecipeWithAI, parseRecipeFromUrl, AIRecipeResponse } from "@/lib/recipeAI";
+import { useAuth } from "@/auth/AuthContext";
 import { toast } from "sonner";
 
 interface ImportRecipeDialogProps {
@@ -28,6 +29,7 @@ export function ImportRecipeDialog({ onRecipeImported }: ImportRecipeDialogProps
   const [recipeUrl, setRecipeUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { getIdToken } = useAuth();
 
   const handleImport = async () => {
     setLoading(true);
@@ -36,19 +38,20 @@ export function ImportRecipeDialog({ onRecipeImported }: ImportRecipeDialogProps
 
     try {
       let parsedRecipe: AIRecipeResponse;
+      const authToken = (await getIdToken()) ?? undefined;
 
       if (mode === "url") {
         if (!recipeUrl.trim()) {
           toast.error("Cole a URL da receita");
           return;
         }
-        parsedRecipe = await parseRecipeFromUrl(recipeUrl.trim());
+        parsedRecipe = await parseRecipeFromUrl(recipeUrl.trim(), authToken);
       } else {
         if (!recipeText.trim()) {
           toast.error("Cole o texto da receita");
           return;
         }
-        parsedRecipe = await parseRecipeWithAI(recipeText);
+        parsedRecipe = await parseRecipeWithAI(recipeText, authToken);
       }
 
       toast.success("Receita processada com sucesso!");

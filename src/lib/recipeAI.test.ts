@@ -7,7 +7,7 @@ describe("normalizeAIResponse", () => {
       title: "Bolo",
       description: "fofo",
       ingredients: [{ id: "", name: "Farinha", quantity: "2", unit: "xícaras" }],
-      instructions: "Misture tudo",
+      steps: ["Misture tudo"],
       difficulty: "easy" as never,
       categories: ["dessert", "snack"] as never,
       prepTime: 30,
