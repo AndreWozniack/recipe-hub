@@ -13,6 +13,7 @@ interface AuthContextType extends AuthState {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  getIdToken: () => Promise<string | null>;
   isAuthenticated: boolean;
 }
 
@@ -111,6 +112,11 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
     }
   }, [provider]);
 
+  const getIdToken = useCallback(async () => {
+    if (!provider) return null;
+    return provider.getIdToken();
+  }, [provider]);
+
   const value: AuthContextType = {
     user,
     loading,
@@ -119,6 +125,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
     signInWithEmail,
     signUpWithEmail,
     signOut,
+    getIdToken,
     isAuthenticated: !!user,
   };
 
