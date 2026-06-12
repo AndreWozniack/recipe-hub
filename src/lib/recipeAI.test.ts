@@ -63,4 +63,32 @@ describe("parseRecipeWithAI", () => {
     expect(result.categories).toEqual(["prato-principal"]);
     expect(result.ingredients).toHaveLength(1);
   });
+
+  it("anexa Authorization quando authToken é fornecido", async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ title: "Bolo", ingredients: [], steps: [] }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await parseRecipeWithAI("x".repeat(60), "token-123");
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer token-123");
+  });
+
+  it("não envia Authorization quando authToken ausente", async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ title: "Bolo", ingredients: [], steps: [] }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await parseRecipeWithAI("x".repeat(60));
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBeUndefined();
+  });
 });

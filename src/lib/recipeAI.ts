@@ -5,6 +5,13 @@ declare const __API_ENDPOINT__: string;
 
 const REQUEST_TIMEOUT_MS = 45000;
 
+function buildHeaders(authToken?: string): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+  };
+}
+
 export interface AIRecipeResponse {
   title: string;
   description?: string;
@@ -23,6 +30,7 @@ export interface AIRecipeResponse {
  */
 export async function parseRecipeWithAI(
   recipeText: string,
+  authToken?: string,
 ): Promise<AIRecipeResponse> {
   if (!recipeText || recipeText.trim().length < 50) {
     throw new Error("Texto da receita deve ter pelo menos 50 caracteres");
@@ -37,9 +45,7 @@ export async function parseRecipeWithAI(
 
     const response = await fetch(__API_ENDPOINT__, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(authToken),
       signal: controller.signal,
       body: JSON.stringify({
         recipeText: recipeText.trim(),
@@ -90,7 +96,10 @@ async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
-export async function parseRecipeFromUrl(url: string): Promise<AIRecipeResponse> {
+export async function parseRecipeFromUrl(
+  url: string,
+  authToken?: string,
+): Promise<AIRecipeResponse> {
   const urlEndpoint = __API_ENDPOINT__.replace("/parseRecipe", "/parseRecipeFromUrl");
 
   const controller = new AbortController();
@@ -99,7 +108,7 @@ export async function parseRecipeFromUrl(url: string): Promise<AIRecipeResponse>
   try {
     const response = await fetch(urlEndpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders(authToken),
       signal: controller.signal,
       body: JSON.stringify({ url }),
     });
@@ -127,7 +136,10 @@ export async function parseRecipeFromUrl(url: string): Promise<AIRecipeResponse>
   }
 }
 
-export async function convertTextToSteps(text: string): Promise<string[]> {
+export async function convertTextToSteps(
+  text: string,
+  authToken?: string,
+): Promise<string[]> {
   const endpoint = __API_ENDPOINT__.replace("/parseRecipe", "/convertToSteps");
 
   const controller = new AbortController();
@@ -136,7 +148,7 @@ export async function convertTextToSteps(text: string): Promise<string[]> {
   try {
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildHeaders(authToken),
       signal: controller.signal,
       body: JSON.stringify({ text }),
     });
